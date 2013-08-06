@@ -11,7 +11,8 @@ curPath = strsplit(curPath,':');
 matchStr = {'.svn','.git'};
 for i = 1 : length(curPath)
     for j = 1 : length(matchStr)
-        if ~isempty(strfind(curPath{i},matchStr{j}))
+        if ~isempty(strfind(curPath{i},matchStr{j})) || ...
+           ~exist(curPath{i},'dir')
             disp(['Removing Path:' curPath{i}]);
             rmpath(curPath{i});
             break;
