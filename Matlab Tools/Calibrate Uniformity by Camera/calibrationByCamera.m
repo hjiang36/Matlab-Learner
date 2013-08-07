@@ -35,14 +35,28 @@ pixelets = hG.pixelets;
 %% Calibrate camera postion
 %  Show test image
 hG = setPixContent(hG,It);
+%  Draw to screen
+hG.dispI = zeros(size(hG.dispI));
+for curPix = 1 : length(hG.pixelets)
+    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+end
+imshow(hG.dispI);
 %  Get camera picture
 cameraImg = imgCapturing;
+if isempty(cameraImg), return; end
 %  Compute transfer matrix
 [~,transS,camROI,itROI] = interactiveImgMapping(cameraImg,It);
 
 %% Calibrate uniformity
 %  show second image
 hG = setPixContent(hG,Id);
+%  Draw to screen
+hG.dispI = zeros(size(hG.dispI));
+for curPix = 1 : length(hG.pixelets)
+    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+end
+imshow(hG.dispI);
+
 %  Get camera picture
 cameraImg = imgCapturing;
 %  Compute tranformed image
@@ -55,20 +69,26 @@ if size(mappedImg,3) == 3, mappedImg = rgb2gray(mappedImg); end
 if size(Id,3) == 3, Id = rgb2gray(Id); end
 
 % Extrapolate mappedImg to full size
-% Just padding now
-[M,N] = size(Id);
-mappedImg = padarray(mappedImg,camROI(1:2)-1,'replicate','pre');
-mappedImg = padarray(mappedImg,[M-camROI(1)-camROI(3) ...
-               N-camROI(2)-camROI(4)],'replicate','post');
+% Just resize now
+save deleteMe.mat
+mappedImg = imresize(mappedImg,size(Id));
+%[M,N] = size(Id);
+%mappedImg = padarray(mappedImg,round(itROI(1:2))-1,'replicate','pre');
+%mappedImg = padarray(mappedImg,round([M-itROI(1)-itROI(3) ...
+%               N-itROI(2)-itROI(4)]),'replicate','post');
 
-assert(all(size(mappedImg) == size(Id)));
+%assert(all(size(mappedImg) == size(Id)));
 
 % Blur camera image
 gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
 mappedImg = imfilter(mappedImg,gFilter,'same');
 
+% Set cap to mskRatio to avoid Inf
+mappedImg(mappedImg < 0.1) = 0.1;
 % Compute total msk change ratio
 mskRatio  = repmat(Id ./ mappedImg,[1 1 3]);
+
+mskRatio  = mskRatio / max(mskRatio(:));
 
 % Cut msk to slices
 mskRatioPix = cutImgToPix(mskRatio,hG);
@@ -82,4 +102,18 @@ for curPix = 1:length(hG.pixelets)
         hG.pixelets{curPix}.msk;
 end
 
+%  Draw to screen
+hG.dispI = zeros(size(hG.dispI));
+for curPix = 1 : length(hG.pixelets)
+    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+end
+
+imshow(hG.dispI);
+
+end
+
+%% Aux Functions
+function Img = drawOnCanvas(Img,pix)
+    Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1)-1,...
+        pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2)-1,:) = pix.dispImg;
 end

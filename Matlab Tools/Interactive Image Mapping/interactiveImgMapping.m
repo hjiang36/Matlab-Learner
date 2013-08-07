@@ -34,7 +34,7 @@ if mod(length(varargin),2)~=0, error('Parameters should be in pairs'); end
 %% Parse input parameters
 %  Init parameters
 showDebug = false; showPlot = false;
-srcROI = []; dstROI = [];
+srcROI = []; dstROI = []; transS = [];
 
 % Parse varargin and set corresponding field
 for i = 1 : 2 : length(varargin)
@@ -47,6 +47,8 @@ for i = 1 : 2 : length(varargin)
             srcROI = varargin{i+1};
         case 'dstroi'
             dstROI = varargin{i+1};
+        case 'transs'
+            transS = varargin{i+1};
         otherwise
             warning('Unrecognized parameters encountered, ignored');
     end
@@ -55,14 +57,16 @@ end
 %% Mark ROI & Crop Image
 %  Crop Src & Dst Img
 if isempty(srcROI)
-    srcImg = imcrop(srcImg);
+    figure;
+    [srcImg,srcROI] = imcrop(srcImg);
     close(gcf);
 else
     srcImg = imcrop(srcImg,srcROI);
 end
 
 if isempty(dstROI)
-    dstImg = imcrop(dstImg);
+    figure;
+    [dstImg,dstROI] = imcrop(dstImg);
     close(gcf);
 else
     dstImg = imcrop(dstImg,dstROI);
@@ -70,30 +74,32 @@ end
 
 
 %%  Mark Corresponding Points
-hF = figure('Name','Mark Correspondence',...
-       'NumberTitle','off',...
-       'Menubar','none');
-subplot(1,2,1); imshow(srcImg); hold on;
-subplot(1,2,2); imshow(dstImg); hold on;
-
-% mappedPoints work as our session data
-mappedPoints = [];
-setappdata(0,'mpPoints',mappedPoints);
-dcm_obj = datacursormode;
-set(dcm_obj,...
-    'SnapToDataVertex','on',...
-    'DisplayStyle','window',...
-    'UpdateFcn', @dataCursorUpdate);
-
-% Wait for figure exit
-waitfor(hF);
-mappedPoints = getappdata(0,'mpPoints');
-
-%% Compute transformation
-dstPoints = mappedPoints(1:2:end,:);
-srcPoints = mappedPoints(2:2:end,:);
-
-transS = cp2tform(dstPoints,srcPoints,'similarity');
+if isempty(transS)
+    hF = figure('Name','Mark Correspondence',...
+        'NumberTitle','off',...
+        'Menubar','none');
+    subplot(1,2,1); imshow(srcImg); hold on;
+    subplot(1,2,2); imshow(dstImg); hold on;
+    
+    % mappedPoints work as our session data
+    mappedPoints = [];
+    setappdata(0,'mpPoints',mappedPoints);
+    dcm_obj = datacursormode;
+    set(dcm_obj,...
+        'SnapToDataVertex','on',...
+        'DisplayStyle','window',...
+        'UpdateFcn', @dataCursorUpdate);
+    
+    % Wait for figure exit
+    waitfor(hF);
+    mappedPoints = getappdata(0,'mpPoints');
+    
+    % Compute transformation
+    dstPoints = mappedPoints(1:2:end,:);
+    srcPoints = mappedPoints(2:2:end,:);
+    
+    transS = cp2tform(dstPoints,srcPoints,'similarity');
+end
 
 % tranform srcImg to dstImg
 mappedImg = imtransform(srcImg,transS);

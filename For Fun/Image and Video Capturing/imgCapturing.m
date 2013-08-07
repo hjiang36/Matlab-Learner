@@ -14,6 +14,9 @@ function Img = imgCapturing(adaptorName, devID, varargin)
 %  Example:
 %    Img = imgCapturing('macvideo',1);
 %
+%  Note:
+%    This function require Image Aquisition Toolbox
+%
 %  (HJ) July, 2013
 
 %% Check Inputs and init
@@ -68,6 +71,8 @@ setappdata(0,'ImageHandle',hImage);
 %% Capture and Wait
 waitfor(gcf);
 Img = getappdata(0,'RetImage');
+Img = im2double(Img);
+delete(vObj);
 
 end
 

@@ -25,12 +25,13 @@ if ~isfield(params, 'nCols'), error('Number of pixelets unknown'); end
 if ~isfield(params, 'overlapSize'), error('Overlap size unknown'); end
 if ~isfield(params, 'inputImgSz'),error('Original Image size unknown'); end
 
-if any(size(Img) ~= params.inputImgSz)
+if size(Img,1)~=params.inputImgSz(1) || size(Img,2)~=params.inputImgSz(2)
     warning('New Image size is different, will be resized');
     Img = imresize(Img, params.inputImgSz);
 end
 
 %% Init
+nCols   = params.nCols;
 content = cell(nCols,1);
 % Compute / store for convenience
 M = params.inputImgSz(1); 

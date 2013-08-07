@@ -21,12 +21,12 @@ function hG = setPixContent(hG, Img)
 if nargin < 1, error('Handle of graph required'); end
 if nargin < 2, error('New image to diplay required'); end
 
-if any(size(Img) ~= hG.inputImgSz)
+if size(Img,1) ~= hG.inputImgSz(1) || size(Img,2) ~= hG.inputImgSz(2)
     Img = imresize(Img, hG.inputImgSz);
 end
 
 %% Cut Img to pixelets
-pixContent = cutImgToPix(Img,hG.overlapSize);
+pixContent = cutImgToPix(Img,hG);
 
 %% Set new image to hG
 for curPix = 1 : length(pixContent)
