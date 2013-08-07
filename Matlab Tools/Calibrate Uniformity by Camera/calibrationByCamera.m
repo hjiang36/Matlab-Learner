@@ -11,7 +11,15 @@ function hG = calibrationByCamera(hG, It, Id)
 %    hG   - handle of graph, with adjusted mask values
 %
 %  Example:
+%    hG = calibrationByCamera(hG, It, Id)
 %
+%  ToDo:
+%    1. figure out paddings
+%    2. set image back to original -done
+%    3. restore hG to show original image after completion - done
+%
+%  See also:
+%    setPixContent, d_pixeletAdjustment, interactiveImgMapping
 %
 %  (HJ) Aug, 2013
 
@@ -20,6 +28,9 @@ function hG = calibrationByCamera(hG, It, Id)
 if nargin < 1, error('Handle of pixelet graph required'); end
 if nargin < 2, error('Test Img Required'); end
 if nargin < 3, error('Demo Img Required'); end
+
+% store original pixelet settings
+pixelets = hG.pixelets;
 
 %% Calibrate camera postion
 %  Show test image
@@ -45,14 +56,19 @@ if size(Id,3) == 3, Id = rgb2gray(Id); end
 
 % Extrapolate mappedImg to full size
 % Just padding now
+[M,N] = size(Id);
+mappedImg = padarray(mappedImg,camROI(1:2)-1,'replicate','pre');
+mappedImg = padarray(mappedImg,[M-camROI(1)-camROI(3) ...
+               N-camROI(2)-camROI(4)],'replicate','post');
 
+assert(all(size(mappedImg) == size(Id)));
 
 % Blur camera image
 gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
 mappedImg = imfilter(mappedImg,gFilter,'same');
 
 % Compute total msk change ratio
-mskRatio  = Id ./ mappedImg;
+mskRatio  = repmat(Id ./ mappedImg,[1 1 3]);
 
 % Cut msk to slices
 mskRatioPix = cutImgToPix(mskRatio,hG);
@@ -60,32 +76,10 @@ mskRatioPix = cutImgToPix(mskRatio,hG);
 % Apply to hG dispImg
 for curPix = 1:length(hG.pixelets)
     hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk.*mskRatioPix{curPix};
-    hG.pixelets{curPix}.dispImg  = hG.pixelets{curPix}.imgContent .* ...
+    % Restore to original settings
+    hG.pixelets{curPix}.imgContent = pixelets{curPix}.imgContent;
+    hG.pixelets{curPix}.dispImg  = pixelets{curPix}.imgContent .* ...
         hG.pixelets{curPix}.msk;
 end
 
-end
-
-%% Aux Function - setPixContent
-%    set new image to pixelet adjustment window
-%
-%  Inputs:
-%    hG  - handle of graph, created in d_pixeleAdjustment.m
-%    Img - new image to be used, should be the same size as orginal one,
-%          otherwise, we resize it
-%  Outputs:
-%    hG  - handle of graph, with new image set
-
-function hG = setPixContent(hG, Img)
-end
-
-%% Aux Function - cutImgToPix
-%  Compute image content for each pixelet
-%
-%  Inputs:
-%
-%  Outputs:
-%
-
-function content = cutImgToPix(Img, params)
 end
