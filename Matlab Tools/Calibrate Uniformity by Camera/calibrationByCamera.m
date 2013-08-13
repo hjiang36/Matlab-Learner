@@ -84,11 +84,12 @@ gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
 mappedImg = imfilter(mappedImg,gFilter,'same');
 
 % Set cap to mskRatio to avoid Inf
-mappedImg(mappedImg < 0.1) = 0.1;
+mappedImg(mappedImg < 0.2) = mean(mean(mappedImg(mappedImg>0.2)));
 % Compute total msk change ratio
 mskRatio  = repmat(Id ./ mappedImg,[1 1 3]);
 
 mskRatio  = mskRatio / max(mskRatio(:));
+mskRatio(isnan(mskRatio)) = 1;
 
 % Cut msk to slices
 mskRatioPix = cutImgToPix(mskRatio,hG);

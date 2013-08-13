@@ -47,43 +47,8 @@ hG.pixelets = cell(nCols,1); % Assuming one line at this time
 hG.inputImgSz  = [M N];
 hG.overlapSize = overlapSize; % store in hG for further use
 hG.nCols       = nCols;
-nonOverlapSize = [M ceil((N - (nCols-1)*overlapSize)/nCols)];
-for curPix = 1 : nCols
-    % Init Left and Right overlap size
-    if curPix == 1
-        hG.pixelets{curPix}.overlapL = 0;
-    else
-        hG.pixelets{curPix}.overlapL = overlapSize;
-    end
-    if curPix == nCols
-        hG.pixelets{curPix}.overlapR = 0;
-    else
-        hG.pixelets{curPix}.overlapR = overlapSize;
-    end
-    % Init Blur Region Size
-    hG.pixelets{curPix}.blurL = hG.pixelets{curPix}.overlapL; 
-    hG.pixelets{curPix}.blurR = hG.pixelets{curPix}.overlapR;
-    
-    % Init Position
-    hG.pixelets{curPix}.dispPos = [1 ...
-        (curPix-1)*(nonOverlapSize(2)+overlapSize)+1];
-    
-    % Init image content size
-    hG.pixelets{curPix}.imgContent = ...
-        Img(:,hG.pixelets{curPix}.dispPos(2)-hG.pixelets{curPix}.overlapL:...
-        min(curPix*(nonOverlapSize(2)+overlapSize),N),:);
-    
-    % Init pixlets display size
-    hG.pixelets{curPix}.dispSize = size(hG.pixelets{curPix}.imgContent);
-    hG.pixelets{curPix}.dispSize = hG.pixelets{curPix}.dispSize(1:2);
-    % Init Mask
-    hG.pixelets{curPix}.msk = genBlurMsk([hG.pixelets{curPix}.overlapL...
-         hG.pixelets{curPix}.overlapR],size(hG.pixelets{curPix}.imgContent));
-    
-    % Compute display image
-    hG.pixelets{curPix}.dispImg  = hG.pixelets{curPix}.imgContent .* ...
-        hG.pixelets{curPix}.msk;
-end
+hG.inputImg    = Img;
+hG             = initPixelets(hG);
 
 %% Display Image on Black Background
 tmp = findobj('Tag', 'PixeletAdjustment');
@@ -124,6 +89,7 @@ uimenu(mh,'Label','Quit','Callback','close(gcf); return;',...
            'Separator','on','Accelerator','Q');
 
 mh = uimenu(hG.fig,'Label','Calibration');
+uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
 uimenu(mh,'Label','By Camera','Callback',@calByCamera);
 
 % Draw Panels
@@ -166,7 +132,7 @@ end
 
 % Show Image
 hG.imgHandle = imshow(hG.dispI);
-truesize;
+%truesize;
 %set(hG.imgHandle,'EraseMode','none')
 
 setappdata(hG.fig,'handles',hG);
@@ -174,6 +140,57 @@ setappdata(hG.fig,'handles',hG);
 end
 
 %% Aux Functions
+function hG = initPixelets(hG)
+
+M     = hG.inputImgSz(1); 
+N     = hG.inputImgSz(2);
+Img   = hG.inputImg;
+nCols = hG.nCols;
+overlapSize = hG.overlapSize;
+nonOverlapSize = [M ceil((N - (nCols-1)*overlapSize)/nCols)];
+
+for curPix = 1 : nCols
+    % Init Left and Right overlap size
+    if curPix == 1
+        hG.pixelets{curPix}.overlapL = 0;
+    else
+        hG.pixelets{curPix}.overlapL = overlapSize;
+    end
+    if curPix == nCols
+        hG.pixelets{curPix}.overlapR = 0;
+    else
+        hG.pixelets{curPix}.overlapR = overlapSize;
+    end
+    % Init Blur Region Size
+    hG.pixelets{curPix}.blurL = hG.pixelets{curPix}.overlapL; 
+    hG.pixelets{curPix}.blurR = hG.pixelets{curPix}.overlapR;
+    
+    % Init Position
+    if ~isfield(hG.pixelets{curPix},'dispPos')
+        hG.pixelets{curPix}.dispPos = [1 ...
+            (curPix-1)*(nonOverlapSize(2)+overlapSize)+1];
+    end
+    
+    % Init image content size
+    hG.pixelets{curPix}.imgContent = ...
+        Img(:,(curPix-1)*(nonOverlapSize(2)+overlapSize)+1 ...
+            -hG.pixelets{curPix}.overlapL:...
+        min(curPix*(nonOverlapSize(2)+overlapSize),N),:);
+    
+    % Init pixlets display size
+    hG.pixelets{curPix}.dispSize = size(hG.pixelets{curPix}.imgContent);
+    hG.pixelets{curPix}.dispSize = hG.pixelets{curPix}.dispSize(1:2);
+    % Init Mask
+    hG.pixelets{curPix}.msk = genBlurMsk([hG.pixelets{curPix}.overlapL...
+         hG.pixelets{curPix}.overlapR],size(hG.pixelets{curPix}.imgContent));
+    
+    % Compute display image
+    hG.pixelets{curPix}.dispImg  = hG.pixelets{curPix}.imgContent .* ...
+        hG.pixelets{curPix}.msk;
+end
+
+end % End of function initPixelets
+
 function Img = drawOnCanvas(Img,pix)
     Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1)-1,...
         pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2)-1,:) = pix.dispImg;
@@ -266,7 +283,7 @@ function mouseDown(~,~)
         % Draw to Screen
         hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
-        truesize;
+        %truesize;
     elseif strcmpi(get(hG.fig,'selectiontype'),'normal') % Left click
         hG.mouseDown = true;
         hG.downPos  = round(pos(1,[2 1]));
@@ -287,7 +304,7 @@ function mouseDown(~,~)
         % Draw to Screen
         hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
-        truesize;
+        %truesize;
         % Adjust by Curve
         direction = str2double(answer{2});
         if direction == 0 || direction == 1
@@ -302,7 +319,7 @@ function mouseDown(~,~)
         % Draw to Screen
         hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
-        truesize;
+        %truesize;
     end
     setappdata(hG.fig,'handles',hG);
 end
@@ -459,7 +476,7 @@ function keyPress(~,evt)
         hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
-    truesize;
+    %truesize;
     setappdata(hG.fig,'handles',hG);
 end
 
@@ -497,7 +514,7 @@ function loadNewImg(~,~)
         hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
-    truesize;
+    %truesize;
     setappdata(hG.fig,'handles',hG);
 end
 
@@ -510,7 +527,7 @@ end
 
 function loadSettings(~,~)
     if exist('pixeletSettings.mat','file');
-        c  = load(pixeletSettings.mat);
+        c  = load('pixeletSettings.mat');
         hG = c.hG;
         imshow(hG.dispI);
         setappdata(hG.fig,'handles',hG);
@@ -525,5 +542,29 @@ function calByCamera(~,~)
     It = im2double(imread('google_s.jpg'));
     Id = ones(size(It));
     hG = calibrationByCamera(hG,It,Id);
+    setappdata(hG.fig,'handles',hG);
+end
+
+function adjOverlap(~,~)
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    prompt = {'Overlap Size (pixels)'};
+    dlg_title = 'Adjust Overlap';
+    num_lines = 1;
+    def = {num2str(hG.overlapSize)};
+    answer = inputdlg(prompt,dlg_title,num_lines,def);
+   
+    if isempty(answer), return; end
+    overlapSize = str2double(answer{1});
+    if overlapSize ~= hG.overlapSize
+        hG.overlapSize = overlapSize;
+        hG = initPixelets(hG);
+    end
+    % Redraw all here
+    hG.dispI = zeros(size(hG.dispI));
+    for curPix = 1 : length(hG.pixelets)
+        hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+    end
+    imshow(hG.dispI);
     setappdata(hG.fig,'handles',hG);
 end
