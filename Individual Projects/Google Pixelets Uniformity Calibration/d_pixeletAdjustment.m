@@ -304,6 +304,7 @@ function mouseDown(~,~)
         % Draw to Screen
         hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
+        setappdata(hG.fig,'handles',hG);
         %truesize;
         % Adjust by Curve
         direction = str2double(answer{2});
