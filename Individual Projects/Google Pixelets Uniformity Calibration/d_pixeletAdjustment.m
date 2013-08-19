@@ -42,26 +42,27 @@ nCols       = str2double(answer{1});
 overlapSize = str2double(answer{2});
 
 %% Init Pixelet Structure
-hG.pixelets = cell(nCols,1); % Assuming one line at this time
-[M,N,K]     = size(Img);
-hG.inputImgSz  = [M N];
-hG.overlapSize = overlapSize; % store in hG for further use
-hG.nCols       = nCols;
-hG.inputImg    = Img;
-hG             = initPixelets(hG);
+hG.pixelets      = cell(nCols,1); % Assuming one line at this time
+[M,N,K]          = size(Img);
+hG.inputImgSz    = [M N];
+hG.overlapSize   = overlapSize; % store in hG for further use
+hG.nCols         = nCols;
+hG.inputImg      = Img;
+hG.saveWindowPos = true;
+hG               = initPixelets(hG);
 
 %% Display Image on Black Background
 tmp = findobj('Tag', 'PixeletAdjustment');
 if ~isempty(tmp), close(tmp); end
 
 hG.fig     = figure;
-if exist('d_pixeletAdjConfig.mat','file')
-    c = load('d_pixeletAdjConfig.mat');
+if exist('pixeletSettings.mat','file')
+    c = load('pixeletSettings.mat');
     fig_pos    = c.Pos(1:2);
     fig_width  = c.Pos(3);
     fig_height = c.Pos(4);
 else
-    fig_pos    = get(hG.fig,'Position')-[200 300 0 0];
+    fig_pos    = [400 0];
     fig_width  = 800;
     fig_height = 600;
 end
@@ -76,6 +77,8 @@ set(hG.fig,...
     'CloseRequestFcn',@onCloseRequest...
     );
 
+
+
 % Hide Button
 set(hG.fig,'Toolbar','None');
 set(hG.fig,'Menu','None');
@@ -85,6 +88,8 @@ mh = uimenu(hG.fig,'Label','File');
 uimenu(mh,'Label','Load Image','Callback',@loadNewImg);
 uimenu(mh,'Label','Save Settings','Callback',@saveSettings);
 uimenu(mh,'Label','Load Settings','Callback',@loadSettings);
+uimenu(mh,'Label','Clear Settings','Callback',@clearSettings);
+uimenu(mh,'Label','Clear Window Pos','Callback',@clearWindowPos);
 uimenu(mh,'Label','Quit','Callback','close(gcf); return;',... 
            'Separator','on','Accelerator','Q');
 
@@ -218,6 +223,9 @@ end
 function mouseMove(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
+    if ~exist('hG','var') || isempty(hG) || ~isfield(hG,'mouseDown')
+        return;
+    end
     if ~hG.mouseDown, return; end
     curPoint = round(get(gca, 'CurrentPoint'));
     curPix = hG.selected;
@@ -447,7 +455,12 @@ function keyPress(~,evt)
             end
         case 'z'
             % Command Z - revert last operation
-            if length(evt.Modifier) == 1 && strcmp(evt.Modifier{1},'command')
+            if isunix
+                modifier = 'command';
+            else
+                modifier = 'control';
+            end
+            if length(evt.Modifier) == 1 && strcmp(evt.Modifier{1},modifier)
                 if ~isempty(hG.history)
                     hG.pixelets = hG.history.pixelets;
                     inEdit = false;
@@ -493,10 +506,29 @@ function result = isValidPixIndex(pixIndex)
 end
 
 function onCloseRequest(~,~)
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    if ~hG.saveWindowPos
+        delete(gcf);
+        clear all;
+        return;
+    end
     Pos = get(gcf,'Position');
-    save d_pixeletAdjConfig Pos
+    if exist('pixeletSettings.mat','file')
+        c   = load('pixeletSettings.mat');
+        if isfield(c,'hG')
+            hG = c.hG;
+            save pixeletSettings.mat hG Pos;
+        else
+            save pixeletSettings.mat Pos;
+        end
+    else
+        save pixeletSettings.mat Pos
+    end
     delete(gcf);
+    clear all;
 end
+
 
 %% Menu bar callbacks
 function loadNewImg(~,~)
@@ -521,8 +553,9 @@ end
 
 function saveSettings(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
-    hG = getappdata(hG.fig,'handles');
-    save pixeletSettings.mat hG
+    hG  = getappdata(hG.fig,'handles');
+    Pos =  get(gcf,'Position');
+    save pixeletSettings.mat hG Pos; 
     msgbox('Saved');
 end
 
@@ -567,5 +600,23 @@ function adjOverlap(~,~)
         hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
+    setappdata(hG.fig,'handles',hG);
+end
+
+function clearSettings(~,~)
+    while exist('pixeletSettings.mat','file')
+        delete(which('pixeletSettings.mat'))
+    end
+end
+
+function clearWindowPos(~,~)
+    if exist('pixeletSettings.mat','file')
+        c  = load('pixeletSettings.mat');
+        hG = c.hG;
+        save pixeletSettings.mat hG;
+    end
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    hG.saveWindowPos = false;
     setappdata(hG.fig,'handles',hG);
 end
