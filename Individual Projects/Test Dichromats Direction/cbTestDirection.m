@@ -1,13 +1,28 @@
 function angle = cbTestDirection(bitDepth, showPlot)
-%% s_testCbDirection
+%% function angle = cbTestCbDirection([bitDepth = 8],[showPlot = false])
 %
 %  experiment script that can be used to test colorblind direction
+%
+%  Inputs:
+%    bitDepth - bitDepth of the screen, can be either 8 or 10
+%    showPlot - bool, whether or not to show plot for result
+%
+%  Output:
+%    angle    - angle vector of each trial result
+%
+%  See also:
+%    doCbDirTrial
 %
 %  (HJ) Aug, 2013
 
 %% Check inputs
 if nargin < 1, bitDepth = 8; end
 if nargin < 2, showPlot = false; end
+
+% Check bitDepth
+if bitDepth ~= 8 && bitDepth ~= 10
+    error('Unknown color bit depth, can be either 8 or 10');
+end
 
 %% Init Experiment Parameters
 %  Set fixed parameters
@@ -27,23 +42,9 @@ angle = zeros(cbParams.nTrials,1);
 %  Load display
 display  = cbInitDisplay;
 
-switch bitDepth
-    case 8  %  8 bits
-        display.backColorRgb = [.5 .5 .5]*255;
-        display   = openScreen(display,'hideCursor',false);
-        winPtr    = display.windowPtr;
-    case 10 %  Enable 10 bits
-        % This should be updated to openScreen function anyway
-        PsychImaging('PrepareConfiguration');
-        PsychImaging('AddTask','General','FloatingPoint32BitIfPossible');
-        PsychImaging('AddTask','General','EnableNative10BitFrameBuffer');
-
-        %  Open Window
-        scNumber = max(Screen('Screens'));
-        winPtr   = PsychImaging('OpenWindow',scNumber,[0.5 0.5 0.5]);
-    otherwise
-        error('Unrecoginzed bitDepth, only support 8 bit or 10 bit');
-end
+display.backColorRgb = [.5 .5 .5]*255;
+display   = openScreen(display,'hideCursor',false, 'bitDepth',bitDepth);
+winPtr    = display.windowPtr;
 
 %% Start Trial
 for curTrial = 1 : cbParams.nTrials
@@ -57,10 +58,7 @@ closeScreen(display);
 
 %% Plot
 if showPlot
-    
 end
-%% Save results
-
 
 end
 %%END
