@@ -11,13 +11,14 @@ if nargin < 2, showPlot = false; end
 
 %% Init Experiment Parameters
 %  Set fixed parameters
-cbParams.nTrials  = 1;
-cbParams.bgColor  = [0.5 0.5 0.5]*255; % Background color
-cbParams.refColor = [0.5 0.5 0.5]*255; % Reference color
+cbParams.nTrials  = 3;
+cbParams.bgColor  = [0.5 0.5 0.5]; % Background color
+cbParams.refColor = [0.5 0.5 0.5]; % Reference color
 
 % Init random parameters
 cbParams.initDir = round(rand(cbParams.nTrials,1)*360); % initial direction
 cbParams.dist    = rand(cbParams.nTrials,1)*0.04 + 0.01; % distance in LM
+cbParams.patchSz = [8 8]; % patch size in degrees
 
 % Malloc for output
 angle = zeros(cbParams.nTrials,1);
@@ -28,7 +29,7 @@ display  = cbInitDisplay;
 
 switch bitDepth
     case 8  %  8 bits
-        display.backColorRgb = [127 127 127];
+        display.backColorRgb = [.5 .5 .5]*255;
         display   = openScreen(display,'hideCursor',false);
         winPtr    = display.windowPtr;
     case 10 %  Enable 10 bits

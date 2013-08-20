@@ -4,13 +4,18 @@ function ang = doCbDirTrial(display, winPtr, cbParams)
 %    function that finds colorblind direction for one trial
 %
 %  Inputs:
+%    display  - ISET compatible display structure
+%    winPtr   - Window pointer for certain opened PTB screen
+%    cbParams - Experiment parameters, 
 %
 %  Outputs:
+%    ang      - User selected angle
 %
 %  Example:
+%    ang = doCbDirTrial(display, winPtr, cbParams)
 %
 %  See Also:
-%
+%    cbTestDirection
 %
 %  (HJ) Aug, 2013
 
@@ -19,7 +24,9 @@ if nargin < 1, error('Window pointer needed'); end
 if nargin < 2, error('color blind parameter structure needed'); end
 
 %% Draw initial state
-M = 800; N = 600;% patch size, shall change to computed size
+M = angle2pix(display,cbParams.patchSz(1)); 
+N = angle2pix(display,cbParams.patchSz(2));
+
 refColorRGB   = cbParams.refColor;
 bgColorRGB    = cbParams.bgColor;
 curTrial      = cbParams.curTrial;
@@ -27,8 +34,8 @@ curAngle      = cbParams.initDir(curTrial)/180 * pi;
 curColorRGB   = RGBForContrastChange(display,refColorRGB,bgColorRGB,...
                   cbParams.dist(curTrial)*[cos(curAngle) sin(curAngle) 0]');
 colorImg      = repmat(reshape(curColorRGB,[1 1 3]),[M N 1]); 
-%colorImg      = repmat(reshape([0 255 0],[1 1 3]),[M N 1]); 
-imgTex        = Screen('MakeTexture',winPtr,colorImg);
+
+imgTex        = Screen('MakeTexture',winPtr,colorImg, 0, 0, 2);
 
 % Draw to screen
 Screen('DrawTexture', winPtr, imgTex);
@@ -40,6 +47,7 @@ while true
     if iscell(keyCode), continue; end
     switch KbName(keyCode)
         case 'Return' % Confirm and submit
+            WaitSecs(0.1);
             break;
         case 'LeftArrow' % Change color
             curAngle = mod(curAngle - 1/180 * pi, 2*pi);
@@ -51,17 +59,16 @@ while true
     curColorRGB   = RGBForContrastChange(display,refColorRGB,bgColorRGB,...
         cbParams.dist(curTrial)*[cos(curAngle) sin(curAngle) 0]');
     colorImg      = repmat(reshape(curColorRGB,[1 1 3]),[M N 1]);
-    imgTex        = Screen('MakeTexture',winPtr,colorImg);
+    imgTex        = Screen('MakeTexture',winPtr,colorImg, 0, 0, 2);
     Screen('DrawTexture', winPtr, imgTex);
     Screen('Flip', winPtr);
-    WaitSecs(0.1);
+    WaitSecs(0.025);
 end
 ang = curAngle;
 
 end % end of main function
 
 function matchRGB = RGBForContrastChange(display,refRGB,bgRGB,deltaContrast)
-    %bgStim        = color2struct(bgRGB);
     refContrast   = RGB2ConeContrast(display,...
         color2struct(refRGB - bgRGB));
     matchContrast = refContrast + deltaContrast;
@@ -69,6 +76,6 @@ function matchRGB = RGBForContrastChange(display,refRGB,bgRGB,deltaContrast)
     if max(bgRGB) > 1
         matchRGB      = bgRGB' + matchStim.dir*matchStim.scale*255;
     else
-         matchRGB      = bgRGB' + matchStim.dir*matchStim.scale;
+        matchRGB      = bgRGB' + matchStim.dir*matchStim.scale;
     end
 end
