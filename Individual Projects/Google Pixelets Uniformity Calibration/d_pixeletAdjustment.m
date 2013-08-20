@@ -470,6 +470,16 @@ function keyPress(~,evt)
                     warning('No steps to be reverted');
                 end
             end
+        case 'i'
+            % Increase image size by 1 pix
+            POS = get(hG.fig,'Position');
+            set(hG.fig, 'Position',[POS(1) POS(2) POS(3)+1 POS(4)+1]);
+            setappdata(hG.fig,'handles',hG);
+        case 'o'
+            % Decrease image size by 1 pix
+            POS = get(hG.fig,'Position');
+            set(hG.fig, 'Position',[POS(1) POS(2) POS(3)-1 POS(4)-1]);
+            setappdata(hG.fig,'handles',hG);
         case 'escape'
             inEdit = false;
             return;

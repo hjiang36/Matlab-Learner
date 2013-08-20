@@ -25,12 +25,11 @@ angle = zeros(cbParams.nTrials,1);
 %% Init PsychToolbox Window
 %  Load display
 display  = cbInitDisplay;
-display.wave = display.wavelength;
 
 switch bitDepth
     case 8  %  8 bits
         display.backColorRgb = [127 127 127];
-        display   = openScreen(display,false);
+        display   = openScreen(display,'hideCursor',false);
         winPtr    = display.windowPtr;
     case 10 %  Enable 10 bits
         % This should be updated to openScreen function anyway
@@ -40,7 +39,7 @@ switch bitDepth
 
         %  Open Window
         scNumber = max(Screen('Screens'));
-        winPtr   = PsychImaging('OpenWindow',scNumber,0);
+        winPtr   = PsychImaging('OpenWindow',scNumber,[0.5 0.5 0.5]);
     otherwise
         error('Unrecoginzed bitDepth, only support 8 bit or 10 bit');
 end
@@ -53,12 +52,7 @@ for curTrial = 1 : cbParams.nTrials
 end
 
 %% Close PsychToolbox Window
-switch bitDepth
-    case 10
-        Screen('CloseAll');
-    case 8
-        closeScreen(display);
-end
+closeScreen(display);
 
 %% Plot
 if showPlot
