@@ -572,6 +572,9 @@ end
 function loadSettings(~,~)
     if exist('pixeletSettings.mat','file');
         c  = load('pixeletSettings.mat');
+        if ~isfield(c,'hG')
+            return;
+        end
         hG = c.hG;
         imshow(hG.dispI);
         setappdata(hG.fig,'handles',hG);
@@ -622,8 +625,12 @@ end
 function clearWindowPos(~,~)
     if exist('pixeletSettings.mat','file')
         c  = load('pixeletSettings.mat');
-        hG = c.hG;
-        save pixeletSettings.mat hG;
+        if ~isfield(c,'hG')
+            delete('pixeletSettings.mat');
+        else
+            hG = c.hG;
+            save pixeletSettings.mat hG;
+        end
     end
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
