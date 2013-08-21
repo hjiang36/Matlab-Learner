@@ -305,7 +305,9 @@ function mouseDown(~,~)
         def = {num2str(originalMean),'2'};
         answer = inputdlg(prompt,dlg_title,num_lines,def);
         if isempty(answer), return; end
-        scalar = str2double(answer{1})/originalMean;
+        newMean = str2double(answer{1});
+        if newMean < 1/512; newMean = 1/512; end
+        scalar = newMean/originalMean;
         hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk * scalar;
         hG.pixelets{curPix}.dispImg = imresize(hG.pixelets{curPix}.imgContent,...
             hG.pixelets{curPix}.dispSize).*hG.pixelets{curPix}.msk;
@@ -374,7 +376,13 @@ end
 function msk = adjMskByRegion(curMsk)
     img = curMsk(:,:,1); figure;
     imagesc(img); axis off;
-    selectedRect = round(getrect); close(gcf);
+    try
+        selectedRect = round(getrect); 
+        close(gcf);
+    catch
+        msk = curMsk;
+        return;
+    end
     selectedBW = zeros(size(img));
     % Constrain Region
     lx = max(selectedRect(2),1);

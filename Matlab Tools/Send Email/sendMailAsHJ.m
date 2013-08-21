@@ -1,8 +1,9 @@
 function status = sendMailAsHJ(recipient,subject,message,attach)
 %% function sendMailAsHJ(recipient, subject, [message],[attach])
 %   Send mail as HJ gmail account
-%   This function should never be public, if by any chance you see the
-%   content of this script, please send a note to HJ (hjiang36@gmail.com) 
+%   This function should be lab use only and never be public, if by any 
+%   chance you see the content of this script, please send a note to 
+%   HJ (hjiang36@gmail.com) 
 %  
 %  Inputs:
 %    recipient - string / cell array, containing recipients' email address
@@ -44,7 +45,7 @@ end
 %% Init my account & send
 status = true;
 try
-    myaddress = 'hjiang36@gmail.com';
+    myaddress = 'psychExpResult@gmail.com';
     mypassword = '';
     
     if isempty(mypassword)
