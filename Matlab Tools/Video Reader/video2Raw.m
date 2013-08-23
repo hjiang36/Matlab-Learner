@@ -9,7 +9,17 @@ function vidParams = video2Raw(inName, outName, varargin)
 %    inName:   input video file name, should include file extension
 %    outName:  output file name
 %    varargin: parameter name-value pairs, now supports
-%              - outputType, only supports 'dat' now
+%              - outFormat, supports 'dat' and 'mat'
+%                - .dat video file is saved in RGB sequence in rows first
+%                  order, 8 bit per channel. For example, for image I, the
+%                  output file would contain sequence I(1,1,1), I(1,1,2), 
+%                  I(1,1,3), I(1,2,1), etc.
+%                
+%                - .dat audio file contains 32 bit header, indicating the
+%                  sampling rate and 32 bit field, indicating samples per 
+%                  channel. The content of the file contains samples for 
+%                  each channel, saved as 16 bit integers
+%              - saveAudio, bool, indicate whether to save video file
 %              - outWidth, output image width, in pix
 %              - outHeight, output image height, in pix
 %              - startFrame, start frame number, will override startTime
@@ -55,16 +65,17 @@ end
 
 %% Parse input parameters
 %  init parameters
-outType    = 'dat';
-outWidth   = 0; outHeight  = 0;
-startTime  = 0; endTime    = 0;
-startFrame = 0; endFrame   = 0;
+outFormat  = 'dat';
+outWidth   = 0; outHeight  = 0; % output frame rate
+startTime  = 0; endTime    = inf; % start and end time
+startFrame = 0; endFrame   = inf; % Start and end frame number
+saveAudio  = 0; % ouput audio
 
 for i = 1 : 2 : length(varargin)
     switch lower(strrep(varargin{i},' ',''))
-        case 'outputtype'
+        case 'outformat'
             if strcmpi(varargin{i+1},'mat')
-                outType = 'mat';
+                outFormat = 'mat';
             end
         case 'outwidth'
             if isnumeric(varargin{i+1})
@@ -89,6 +100,16 @@ for i = 1 : 2 : length(varargin)
         case 'endframe'
             if isnumeric(varargin{i+1})
                 endFrame = round(varargin{i+1});
+            end
+        case 'saveaudio'
+            saveAudio = varargin{i+1};
+            % check if file contains readable audio
+            if saveAudio
+                fileInfo = mmfileinfo(inName);
+                if isempty(fileInfo.Audio.Format)
+                    warning(['No audio in file' inName 'detected']);
+                    saveAudio = false;
+                end
             end
         otherwise
             warning(['Unknown parameter: ' varargin{i} ' encountered']);
@@ -149,8 +170,9 @@ else
 end
 
 %% Write to output file
-switch outType
-    case 'dat'
+switch outFormat
+    case 'dat' % output as binary file
+    % save video frames
     fp = fopen(outName,'wb');
     for curFrame = vidParams.startFrame : vidParams.endFrame
         frameData = read(vidObj, curFrame); % Read Image Data
@@ -159,7 +181,62 @@ switch outType
         fwrite(fp, frameData, 'uint8');
     end
     fclose(fp);
-    case 'mat'
+    % save audio samples
+    if saveAudio
+        % parse outName
+        [fPath, fName, fExt] = fileparts(outName);
+        outAudioName = fullfile(fPath,[fName '-Audio'], fExt);
+        
+        fp = fopen(outAudioName,'wb');
+        % load audio
+        [au, fs] = audioread(inName);
+        % Compute start pos and end pos
+        % I do not use startTime / endTime to compute output audio
+        % position, just for sake of video-audio sychronization
+        startPos = (vidParams.startFrame - 1) * fs / vidParams.FrameRate;
+        endPos   = (vidParams.endFrame - 1) * fs / vidParams.FrameRate;
+        % cut audio
+        au = au(startPos:endPos,:);
+        % write sampling rate
+        fprintf(fp,'%d', fs);
+        % write samples per channel
+        fprintf(fp,'%d', length(au));
+        % write audio data
+        fwrite(fp,au,'int16');
+        fclose(fp);
+    end
+    
+    case 'mat' % output as MATLAB data file
+    % save video frame
+    inFrameData = read(vidObj, [startFrame endFrame]);
+    [M,N,K,~]   = size(inFrameData);
+    if outHeight ~= M || outWidth ~= N
+        frameData = zeros([outHeight,outWidth,K,vidParams.NumberOfFrames]);
+        for curFrame = 1 : vidParams.NumberOfFrames
+            frameData(:,:,:,curFrame) = imresize(...
+                inFrameData(:,:,:,curFrame),[outHeight outWidth]);
+        end
+    else
+        frameData = inFrameData;
+    end
+    save tmp.mat frameData vidParams;
+    movefile('tmp.mat', outName);
+    
+     if saveAudio
+        % parse outName
+        [fPath, fName, fExt] = fileparts(outName);
+        outAudioName = fullfile(fPath,[fName '-Audio' fExt]);
+        % load audio
+        [au, fs] = audioread(inName);
+        % cut audio
+        startPos = (vidParams.startFrame - 1) * fs / vidParams.FrameRate;
+        endPos   = (vidParams.endFrame - 1) * fs / vidParams.FrameRate;
+        au = au(startPos:endPos,:);
+        % write audio data
+        save tmp.mat au fs;
+        movefile('tmp.mat', outAudioName);
+    end
+    
     otherwise
         error('Unknown output type');
 end
