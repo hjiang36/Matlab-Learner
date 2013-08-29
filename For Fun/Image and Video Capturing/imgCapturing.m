@@ -1,4 +1,5 @@
-function Img = imgCapturing(adaptorName, devID, varargin)
+function [Img, adaptorName, devID] = imgCapturing(adaptorName, ...
+                                                        devID, varargin)
 %% function imgCapturing([adapterName],[devID],[varargin])
 %    Capture image with certain supported cameras
 %
@@ -10,6 +11,9 @@ function Img = imgCapturing(adaptorName, devID, varargin)
 %
 %  Outputs:
 %    Img         - captured and processed RGB image
+%    adaptorName - string, contrains which adaptor is used in capturing
+%                  camera image
+%    devID       - scaler, indicating which device is used in that adaptor
 %
 %  Example:
 %    Img = imgCapturing('macvideo',1);

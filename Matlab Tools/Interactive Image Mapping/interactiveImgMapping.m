@@ -1,4 +1,5 @@
-function [mappedImg,transS,srcROI,dstROI]=interactiveImgMapping(srcImg,dstImg,varargin)
+function [mappedImg,transS,srcROI,dstROI]=interactiveImgMapping(...
+                                                  srcImg, dstImg, varargin)
 %% function interactiveImgMapping
 %    Interactively mark corresponding points in two images and compute the
 %    linear transformation matrix from srcImg to dstImg
@@ -11,6 +12,8 @@ function [mappedImg,transS,srcROI,dstROI]=interactiveImgMapping(srcImg,dstImg,va
 %  Outputs
 %    mappedImg - transformed source image
 %    transs    - transfrom structure, to be used in tformfwd and tforminv
+%    srcROI    - region of interest in source image
+%    dstROI    - region of interest in destination image
 %
 %  Variable Input:
 %    'showDebug' - bool, whether or not to show debug info (scale / angle)

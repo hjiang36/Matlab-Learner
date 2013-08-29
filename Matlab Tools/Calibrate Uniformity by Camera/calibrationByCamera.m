@@ -1,11 +1,12 @@
-function hG = calibrationByCamera(hG, It, Id)
-%% function calibrationByCamera
+function hG = calibrationByCamera(hG, It, Id, varargin)
+%% function calibrationByCamera(hG, It, Id, [varargin])
 %    script used to calibration brightness by camera
 %
 %  Inputs:
-%    hG   - handle of graph, created in d_pixeleAdjustment.m
-%    It   - test image matrix
-%    Id   - demo image matrix
+%    hG       - handle of graph, created in d_pixeleAdjustment.m
+%    It       - test image matrix
+%    Id       - demo image matrix
+%    varargin - calibration method selection
 %
 %  Outputs:
 %    hG   - handle of graph, with adjusted mask values
@@ -14,9 +15,9 @@ function hG = calibrationByCamera(hG, It, Id)
 %    hG = calibrationByCamera(hG, It, Id)
 %
 %  ToDo:
-%    1. figure out paddings
-%    2. set image back to original -done
-%    3. restore hG to show original image after completion - done
+%    1. Figure out paddings
+%    2. Update to two flash auto-detection transitions
+%    3. Figure out how to eliminate black border
 %
 %  See also:
 %    setPixContent, d_pixeletAdjustment, interactiveImgMapping
@@ -34,31 +35,20 @@ pixelets = hG.pixelets;
 
 %% Calibrate camera postion
 %  Show test image
-hG = setPixContent(hG,It);
-%  Draw to screen
-hG.dispI = zeros(size(hG.dispI));
-for curPix = 1 : length(hG.pixelets)
-    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
-end
-imshow(hG.dispI);
+hG = setPixContent(hG, It, true);
+
 %  Get camera picture
-cameraImg = imgCapturing;
+[cameraImg, adaptorName, deviceID] = imgCapturing;
 if isempty(cameraImg), return; end
 %  Compute transfer matrix
 [~,transS,camROI,itROI] = interactiveImgMapping(cameraImg,It);
 
 %% Calibrate uniformity
 %  show second image
-hG = setPixContent(hG,Id);
-%  Draw to screen
-hG.dispI = zeros(size(hG.dispI));
-for curPix = 1 : length(hG.pixelets)
-    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
-end
-imshow(hG.dispI);
+hG = setPixContent(hG, Id, true);
 
 %  Get camera picture
-cameraImg = imgCapturing;
+cameraImg = imgCapturing(adaptorName, deviceID);
 %  Compute tranformed image
 mappedImg = interactiveImgMapping(cameraImg,Id,...
                 'transS',transS,'srcROI',camROI,'dstROI',itROI);
@@ -70,11 +60,10 @@ if size(Id,3) == 3, Id = rgb2gray(Id); end
 
 % Extrapolate mappedImg to full size
 % Just resize now
-save deleteMe.mat
 mappedImg = imresize(mappedImg,size(Id));
 
 % Before blur the image, we need to carefully handle the black border sadly
-dataRegion = (mappedImg == 0);
+% dataRegion = (mappedImg == 0);
 
 
 % Blur camera image
