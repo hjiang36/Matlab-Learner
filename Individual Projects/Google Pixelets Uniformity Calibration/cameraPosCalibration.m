@@ -76,7 +76,6 @@ varargout{2} = deviceID;
 
 
 %% Find position of marker on photos
-photo1 = markerImg1; photo2 = markerImg2;
 diffImg = abs(photo1 - photo2);
 if size(diffImg, 3) == 3, diffImg = rgb2gray(diffImg); end
 % Denoise image by a median filter
@@ -84,10 +83,15 @@ diffImg   = medfilt2(diffImg, [3 3]);
 diffImgBW = im2bw(diffImg, graythresh(diffImg));
 % Find connected components
 CC = bwconncomp(diffImgBW);
-photoCentroids = regionprops(CC, 'Centroid');
+photoCentroids = regionprops(CC, 'Centroid','Area',...
+                             'MajorAxisLength','MinorAxisLength');
+% Filter connected regions
+idx = ([photoCentroids.Area] > 20 & ...
+       [photoCentroids.MajorAxisLength] ./ ...
+       [photoCentroids.MinorAxisLength] < 1.15);
+photoCentroids = photoCentroids(idx);
 % Convert centroids to N-by-2 matrix
-photoCentroids = struct2cell(photoCentroids);
-photoCentroids = cat(1, photoCentroids{:});
+photoCentroids = cat(1, photoCentroids.Centroid);
 
 % Should replace here with ROI
 assert(numel(photoCentroids) == numel(imgCentroids));

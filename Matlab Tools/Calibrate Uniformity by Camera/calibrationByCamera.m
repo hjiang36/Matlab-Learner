@@ -33,6 +33,8 @@ if nargin < 3, error('Demo Img Required'); end
 % store original pixelet settings
 pixelets = hG.pixelets;
 
+cameraPosCalibration(hG); 
+return;
 %% Calibrate camera postion
 %  Show test image
 hG = setPixContent(hG, It, true);

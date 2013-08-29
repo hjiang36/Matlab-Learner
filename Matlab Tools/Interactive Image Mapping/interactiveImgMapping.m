@@ -116,7 +116,7 @@ if showDebug
     dy = y(2) - y(1);
     angle = (180/pi) * atan2(dy, dx);
     scale = 1 / sqrt(dx^2 + dy^2);
-    disp(['Rotation angle:' num2str(angle)]); 
+    disp(['Rotation angle:' num2str(angle) ' degree']); 
     disp(['Scale:' num2str(scale)]);
 end
 
