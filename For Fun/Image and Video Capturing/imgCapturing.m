@@ -70,8 +70,13 @@ setappdata(0,'ImageHandle',hImage);
 
 %% Capture and Wait
 waitfor(gcf);
-Img = getappdata(0,'RetImage');
-Img = im2double(Img);
+if nargout > 0
+    Img = getappdata(0,'RetImage');
+    Img = im2double(Img);
+else
+    Img = [];
+end
+
 delete(vObj);
 
 end

@@ -597,7 +597,7 @@ end
 function calByCamera(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
-    It = im2double(imread('google_s.jpg'));
+    It = im2double(imread('popup_white - text.jpg'));
     Id = ones(size(It));
     hG = calibrationByCamera(hG,It,Id);
     setappdata(hG.fig,'handles',hG);

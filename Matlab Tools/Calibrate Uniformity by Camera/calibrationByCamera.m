@@ -72,12 +72,10 @@ if size(Id,3) == 3, Id = rgb2gray(Id); end
 % Just resize now
 save deleteMe.mat
 mappedImg = imresize(mappedImg,size(Id));
-%[M,N] = size(Id);
-%mappedImg = padarray(mappedImg,round(itROI(1:2))-1,'replicate','pre');
-%mappedImg = padarray(mappedImg,round([M-itROI(1)-itROI(3) ...
-%               N-itROI(2)-itROI(4)]),'replicate','post');
 
-%assert(all(size(mappedImg) == size(Id)));
+% Before blur the image, we need to carefully handle the black border sadly
+dataRegion = (mappedImg == 0);
+
 
 % Blur camera image
 gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
@@ -85,6 +83,7 @@ mappedImg = imfilter(mappedImg,gFilter,'same');
 
 % Set cap to mskRatio to avoid Inf
 mappedImg(mappedImg < 0.2) = mean(mean(mappedImg(mappedImg>0.2)));
+
 % Compute total msk change ratio
 mskRatio  = repmat(Id ./ mappedImg,[1 1 3]);
 
