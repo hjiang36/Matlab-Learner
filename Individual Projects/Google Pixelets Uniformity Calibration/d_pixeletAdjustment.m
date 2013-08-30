@@ -3,10 +3,9 @@
 %  Adjust Position and uniformity
 %
 %  ToDo:
-%    1. Save settings
-%    2. Load settings
-%    3. Calibration by Camera
-%    4. Make curve and area adjustment into menu
+%    1. Calibration by Camera
+%    2. Make curve and area adjustment into menu
+%    3. Auto magnification adjustment
 %
 %  See also:
 %    calibrationByCamera, setPixContent, imgCapturing
@@ -97,8 +96,11 @@ uimenu(mh,'Label','Quit','Callback','close(gcf); return;',...
            'Separator','on','Accelerator','Q');
 
 mh = uimenu(hG.fig,'Label','Calibration');
-uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
 uimenu(mh,'Label','By Camera','Callback',@calByCamera);
+
+mh = uimenu(hG.fig, 'Label', 'Adjustment');
+uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
+uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @adjTotalSize);
 
 % Draw Panels
 hG.main = uipanel(... % Main panel - for display composed images
@@ -646,5 +648,27 @@ function clearWindowPos(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
     hG.saveWindowPos = false;
+    setappdata(hG.fig,'handles',hG);
+end
+
+function adjTotalSize(~,~)
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    prompt = {'Total Width (pixels)', 'Total Height'};
+    dlg_title = 'Adjust Total Size';
+    num_lines = 1;
+    def = {num2str(size(hG.dispI, 2)), num2str(size(hG.dispI, 1))};
+    answer = inputdlg(prompt,dlg_title,num_lines,def);
+    
+    if isempty(answer), return; end
+    dispWidth = str2double(answer{1});
+    dispHeight = str2double(answer{2});
+    
+    % If becomes larger, pad image with 0
+    padSize = max([dispHeight - size(hG.dispI, 1) ...
+                   dispWidth - size(hG.dispI, 2)], [0 0]);
+    hG.dispI = padarray(hG.dispI, [padSize 0], 0, 'post');
+    hG.dispI = hG.dispI(1:dispHeight, 1:dispWidth, :);
+    imshow(hG.dispI);
     setappdata(hG.fig,'handles',hG);
 end
