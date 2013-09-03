@@ -87,16 +87,17 @@ set(hG.fig,'Menu','None');
 
 % Create custom menu bar
 mh = uimenu(hG.fig,'Label','File'); 
-uimenu(mh,'Label','Load Image','Callback',@loadNewImg);
-uimenu(mh,'Label','Save Settings','Callback',@saveSettings);
-uimenu(mh,'Label','Load Settings','Callback',@loadSettings);
-uimenu(mh,'Label','Clear Settings','Callback',@clearSettings);
-uimenu(mh,'Label','Clear Window Pos','Callback',@clearWindowPos);
-uimenu(mh,'Label','Quit','Callback','close(gcf); return;',... 
-           'Separator','on','Accelerator','Q');
+uimenu(mh, 'Label', 'Load Image', 'Callback',@loadNewImg);
+uimenu(mh, 'Label', 'Save Settings', 'Callback',@saveSettings);
+uimenu(mh, 'Label', 'Load Settings', 'Callback',@loadSettings);
+uimenu(mh, 'Label', 'Clear Settings', 'Callback',@clearSettings);
+uimenu(mh, 'Label', 'Clear Window Pos', 'Callback',@clearWindowPos);
+uimenu(mh, 'Label', 'Quit','Callback', 'close(gcf); return;',... 
+           'Separator', 'on', 'Accelerator', 'Q');
 
 mh = uimenu(hG.fig,'Label','Calibration');
-uimenu(mh,'Label','By Camera','Callback',@calByCamera);
+uimenu(mh, 'Label', 'By Camera (Manual)','Callback',@calByCameraManual);
+uimenu(mh, 'Label', 'By Camera (Auto)', 'Callback', @calByCameraAuto);
 
 mh = uimenu(hG.fig, 'Label', 'Adjustment');
 uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
@@ -596,13 +597,20 @@ function loadSettings(~,~)
     end
 end
 
-function calByCamera(~,~)
+function calByCameraManual(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
     It = im2double(imread('popup_white - text.jpg'));
     Id = ones(size(It));
-    hG = calibrationByCamera(hG,It,Id);
+    hG = calibrationByCameraManual(hG,It,Id);
     setappdata(hG.fig,'handles',hG);
+end
+
+function calByCameraAuto(~,~)
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    hG = calibrationByCameraAuto(hG);
+    setappdata(hG.fig, 'handles', hG);
 end
 
 function adjOverlap(~,~)

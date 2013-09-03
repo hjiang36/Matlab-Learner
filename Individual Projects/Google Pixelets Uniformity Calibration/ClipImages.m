@@ -1,3 +1,13 @@
+%% ClipImages
+%    This script loads an input image and convert it to pixelet
+%    representations according to some pre-set perameters
+%
+%  Required Toolbox:
+%    PsychToolbox, Image Processing Toolbox
+%
+% (HJ) Jul, 2013
+
+
 %% Init
 clc; clear; close all;
 AssertOpenGL;

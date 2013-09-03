@@ -1,3 +1,12 @@
+%% TestLines
+%    This script is used to create simulation scenes for vernial accuity
+%    and test the visual experience of different blending method
+%
+%  Required Toolbox
+%    PsychToolbox, Image Processing Toolbox
+%
+%  (HJ) Jul, 2013
+
 %% Init
 clc; clear; close all;
 AssertOpenGL;
