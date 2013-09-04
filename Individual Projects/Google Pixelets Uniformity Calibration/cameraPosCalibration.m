@@ -1,4 +1,4 @@
-function [transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
+function [hG, transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
                                       hG, adaptorName, deviceID, varargin)
 %% function cameraPosCalibration([adaptorName], [deviceID])
 %    Find transformation matrix between original input image and camera
@@ -22,6 +22,7 @@ function [transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
 %                  control pairs
 %
 %  Outputs:
+%    hG        - handle of graph, with mask value adjusted
 %    transS    - transfrom structure, to be used in tformfwd and tforminv
 %    srcROI    - region of interest in source image
 %    dstROI    - region of interest in destination image
@@ -37,7 +38,7 @@ function [transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
 
 %% Check inputs
 if nargin < 1, error('Hanle of d_pixeletAjustment (hG) required'); end
-if nargin < 2, adaptorName = []; end
+if nargin < 2, adaptorName = 'macvideo'; end
 if nargin < 3, deviceID = []; end
 if mod(length(varargin),2) ~= 0
     error('Parameters should be in pairs');
@@ -60,13 +61,15 @@ markerImg2 = createMarkerImage([]);
 
 %  Show first image and capture first photo
 hG = setPixContent(hG, markerImg1, true);
-[photo1, adaptorName, deviceID] = imgCapturing(adaptorName, deviceID);
+[photo1, adaptorName, deviceID] = imgCapturing( ...
+    adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 
 if isempty(photo1), return; end
 
 %  Show second image and capture second photo
 hG = setPixContent(hG, markerImg2, true);
-[photo2, adaptorName, deviceID] = imgCapturing(adaptorName, deviceID);
+[photo2, adaptorName, deviceID] = imgCapturing( ...
+    adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 
 if isempty(photo2), return; end
 
@@ -74,6 +77,9 @@ if isempty(photo2), return; end
 varargout{1} = adaptorName;
 varargout{2} = deviceID;
 
+%  Average photos for denoising
+photo1 = mean(double(photo1), 4)/255;
+photo2 = mean(double(photo2), 4)/255;
 
 %% Find position of marker on photos
 diffImg = abs(photo1 - photo2);
@@ -88,7 +94,7 @@ photoCentroids = regionprops(CC, 'Centroid','Area',...
 % Filter connected regions
 idx = ([photoCentroids.Area] > 20 & ...
        [photoCentroids.MajorAxisLength] ./ ...
-       [photoCentroids.MinorAxisLength] < 1.15);
+       [photoCentroids.MinorAxisLength] < 2);
 photoCentroids = photoCentroids(idx);
 % Convert centroids to N-by-2 matrix
 photoCentroids = cat(1, photoCentroids.Centroid);
@@ -98,11 +104,14 @@ assert(numel(photoCentroids) == numel(imgCentroids));
 
 %% Compute transformation matrix and region of interest
 %  Sort
-photoCentroids = sortrows(photoCentroids,[1 2]); % This is not a good idea in real demo, but just leave it here
+% This is not a good idea in real demo, but just leave it here
+photoCentroids = sortrows(photoCentroids,[1 2]);
 imgCentroids   = sortrows(imgCentroids, [1 2]);
 
 %  Compute transformation
-transS = cp2tform(photoCentroids, imgCentroids, 'similarity');
+transS = cp2tform(imgCentroids, photoCentroids, 'similarity');
+mappedImg = imtransform(photo2, transS);
+
 
 %% Restore to original image
 hG.pixelets = pixelets;

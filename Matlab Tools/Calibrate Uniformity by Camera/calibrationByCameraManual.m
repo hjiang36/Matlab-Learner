@@ -1,5 +1,5 @@
-function hG = calibrationByCamera(hG, It, Id, varargin)
-%% function calibrationByCamera(hG, It, Id, [varargin])
+function hG = calibrationByCameraManual(hG, It, Id, varargin)
+%% function calibrationByCameraManual(hG, It, Id, [varargin])
 %    script used to calibration brightness by camera
 %
 %  Inputs:
