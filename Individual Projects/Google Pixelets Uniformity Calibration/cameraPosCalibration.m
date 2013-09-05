@@ -39,7 +39,7 @@ function [hG, transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
 %% Check inputs
 if nargin < 1, error('Hanle of d_pixeletAjustment (hG) required'); end
 if nargin < 2, adaptorName = 'macvideo'; end
-if nargin < 3, deviceID = []; end
+if nargin < 3, deviceID = 2; end
 if mod(length(varargin),2) ~= 0
     error('Parameters should be in pairs');
 end
@@ -60,14 +60,14 @@ markerImg1 = createMarkerImage(imgCentroids);
 markerImg2 = createMarkerImage([]);
 
 %  Show first image and capture first photo
-hG = setPixContent(hG, markerImg1, true);
+hG = setPixContent(hG, markerImg1, true); WaitSecs(0.1);
 [photo1, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 
 if isempty(photo1), return; end
 
 %  Show second image and capture second photo
-hG = setPixContent(hG, markerImg2, true);
+hG = setPixContent(hG, markerImg2, true); WaitSecs(0.1);
 [photo2, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 
@@ -105,15 +105,68 @@ assert(numel(photoCentroids) == numel(imgCentroids));
 %% Compute transformation matrix and region of interest
 %  Sort
 % This is not a good idea in real demo, but just leave it here
-photoCentroids = sortrows(photoCentroids,[1 2]);
+photoCentroids(:,[3 4]) = round(photoCentroids / 50) * 50;
+photoCentroids = sortrows(photoCentroids,[3 4]);
+photoCentroids = photoCentroids(:, [1 2]);
 imgCentroids   = sortrows(imgCentroids, [1 2]);
 
+roiUlX = round(min(photoCentroids(:,1)));
+roiUlY = round(min(photoCentroids(:,2)));
+roiLrX = round(max(photoCentroids(:,1)));
+roiLrY = round(max(photoCentroids(:,2)));
+
+photoCentroids(:,1) = round(photoCentroids(:,1) - roiUlX);
+photoCentroids(:,2) = round(photoCentroids(:,2) - roiUlY);
+
 %  Compute transformation
-transS = cp2tform(imgCentroids, photoCentroids, 'similarity');
-mappedImg = imtransform(photo2, transS);
+transS = cp2tform(photoCentroids, imgCentroids, 'similarity');
+
+mappedImg = imtransform(photo2(roiUlY:roiLrY, roiUlX:roiLrX), transS);
+mappedImg = mappedImg(30:end-30, 30:end-30);
+mappedImg = padarray(mappedImg, [47 64], 'replicate', 'post');
+mappedImg = padarray(mappedImg, [46 46], 'replicate', 'pre');
+mappedImg = imresize(mappedImg, hG.inputImgSz);
+
+% Compute total msk change ratio
+mskRatio  = repmat(1 ./ mappedImg,[1 1 3]);
+mskRatio  = mskRatio.^1.3;
+
+% Blur camera image
+%gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
+%mskRatio = imfilter(mskRatio,gFilter,'same');
+
+mskRatio  = mskRatio ./ max(mskRatio(:));
+mskRatio(isnan(mskRatio)) = 1;
+
+% Cut msk to slices
+mskRatioPix = cutImgToPix(mskRatio,hG);
+
+% Apply to hG dispImg
+for curPix = 1:length(hG.pixelets)
+    hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk.*mskRatioPix{curPix};
+    % Restore to original settings
+    hG.pixelets{curPix}.imgContent = pixelets{curPix}.imgContent;
+    hG.pixelets{curPix}.dispImg  = pixelets{curPix}.imgContent .* ...
+        hG.pixelets{curPix}.msk;
+end
+
+%  Draw to screen
+hG.dispI = zeros(size(hG.dispI));
+for curPix = 1 : length(hG.pixelets)
+    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+end
+
+imshow(hG.dispI);
+
 
 
 %% Restore to original image
 hG.pixelets = pixelets;
 
+end
+
+%% Aux Functions
+function Img = drawOnCanvas(Img,pix)
+    Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1)-1,...
+        pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2)-1,:) = pix.dispImg;
 end

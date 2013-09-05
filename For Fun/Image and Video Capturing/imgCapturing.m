@@ -69,7 +69,7 @@ if isempty(adaptorName)
     answer = round(str2double(answer));
     if isnan(answer), error('Indx not valid!'); end
     if answer == 0, Img = []; return; end
-    if answer >= adaptorIndx || answer<0, error('Indx out of range!'); end
+    if answer > adaptorIndx || answer<0, error('Indx out of range!'); end
     adaptorName = availList{answer};
 end
 
@@ -86,13 +86,15 @@ else
                 adpInfo.DeviceInfo(curDev).DeviceName);
         end
         answer = input('Enter Device ID (0 for exit):', 's');
+        answer = str2double(answer);
         if isnan(answer), error('Indx not valid!'); end
         if answer == 0, Img = []; return; end
-        if answer >= curDev, error('Indx out of range!'); end
+        if answer > curDev, error('Indx out of range!'); end
         devID = answer;
         vObj = videoinput(adaptorName, devID);
     end
 end
+flushdata(vObj);
 
 %% Preview Image
 if showPreview

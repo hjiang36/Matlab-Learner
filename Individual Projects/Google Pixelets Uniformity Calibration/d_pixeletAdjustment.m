@@ -564,7 +564,8 @@ function loadNewImg(~,~)
 
     if FileName == 0, return; end
     Img = im2double(imread(fullfile(PathName,FileName)));
-    hG  = setPixContent(hG,Img);
+    hG  = setPixContent(hG, Img);
+    hG.inputImg = imresize(Img, hG.inputImgSz);
     % Redraw all here
     hG.dispI = zeros(size(hG.dispI));
     for curPix = 1 : length(hG.pixelets)
@@ -679,4 +680,29 @@ function adjTotalSize(~,~)
     hG.dispI = hG.dispI(1:dispHeight, 1:dispWidth, :);
     imshow(hG.dispI);
     setappdata(hG.fig,'handles',hG);
+end
+
+function calibrateMagnification()
+    hG.fig = findobj('Tag','PixeletAdjustment');
+    hG = getappdata(hG.fig,'handles');
+    hG.pixelets{1}.msk = hG.pixelets{1}.msk * 0.01;
+    hG.pixelets{3}.msk = hG.pixelets{3}.msk * 0.01;
+    
+    [baseSz, blankImg] = pixeletSizeInPhoto('macvideo',1);
+    % Move to left
+    ratio = 1;
+    while ratio > 0.995
+        hG.pixelets{2}.dispPos(2) = hG.pixelets{2}.dispPos(2) - 1;
+        % Redraw all here
+        hG.dispI = zeros(size(hG.dispI));
+        for curPix = 1 : length(hG.pixelets)
+            hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+        end
+        imshow(hG.dispI);
+        drawnow();
+        
+        curSz = pixeletSizeInPhoto('macvideo', 1, blankImg);
+        ratio = 
+    end
+    % Enlarge to fit to right
 end
