@@ -39,7 +39,7 @@ function [hG, transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
 %% Check inputs
 if nargin < 1, error('Hanle of d_pixeletAjustment (hG) required'); end
 if nargin < 2, adaptorName = 'macvideo'; end
-if nargin < 3, deviceID = 2; end
+if nargin < 3, deviceID = 1; end
 if mod(length(varargin),2) ~= 0
     error('Parameters should be in pairs');
 end
@@ -119,17 +119,17 @@ photoCentroids(:,1) = round(photoCentroids(:,1) - roiUlX);
 photoCentroids(:,2) = round(photoCentroids(:,2) - roiUlY);
 
 %  Compute transformation
-transS = cp2tform(photoCentroids, imgCentroids, 'similarity');
+transS = cp2tform(photoCentroids, imgCentroids, 'projective');
 
 mappedImg = imtransform(photo2(roiUlY:roiLrY, roiUlX:roiLrX), transS);
 mappedImg = mappedImg(30:end-30, 30:end-30);
-mappedImg = padarray(mappedImg, [47 64], 'replicate', 'post');
-mappedImg = padarray(mappedImg, [46 46], 'replicate', 'pre');
+mappedImg = padarray(mappedImg, [46 55], 'replicate', 'post');
+mappedImg = padarray(mappedImg, [47 55], 'replicate', 'pre');
 mappedImg = imresize(mappedImg, hG.inputImgSz);
 
 % Compute total msk change ratio
 mskRatio  = repmat(1 ./ mappedImg,[1 1 3]);
-mskRatio  = mskRatio.^1.3;
+mskRatio  = mskRatio.^1.5;
 
 % Blur camera image
 %gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
