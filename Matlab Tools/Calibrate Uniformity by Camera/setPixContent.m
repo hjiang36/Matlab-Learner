@@ -37,8 +37,8 @@ for curPix = 1 : length(pixContent)
     %  set image content
     hG.pixelets{curPix}.imgContent = pixContent{curPix};
     %  set dispImg
-    hG.pixelets{curPix}.dispImg  = hG.pixelets{curPix}.imgContent .* ...
-        hG.pixelets{curPix}.msk;
+    hG.pixelets{curPix}.dispImg  = imresize(pixContent{curPix}, ...
+        hG.pixelets{curPix}.dispSize) .* hG.pixelets{curPix}.msk;
 end
 
 %% Redraw to screen if needed

@@ -54,22 +54,24 @@ pixelets = hG.pixelets;
 %% Capture image with different marker set
 %  Create two marker images
 % This function has not been implemented yet
-imgCentroids = [40 40; 40 460; 460 40; 460 460;
-                160 160; 160 340; 340 160; 340 340];
+imgCentroids = [40 200; 40 400; 420 200; 420 400;
+                160 240; 160 350; 340 240; 340 350];
 markerImg1 = createMarkerImage(imgCentroids); 
 markerImg2 = createMarkerImage([]);
 
 %  Show first image and capture first photo
-hG = setPixContent(hG, markerImg1, true); WaitSecs(0.1);
+hG = setPixContent(hG, markerImg1, true);
 [photo1, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
+photo1 = photo1(:,:,:,5:end);
 
 if isempty(photo1), return; end
 
 %  Show second image and capture second photo
-hG = setPixContent(hG, markerImg2, true); WaitSecs(0.1);
+hG = setPixContent(hG, markerImg2, true);
 [photo2, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
+photo2 = photo2(:,:,:,5:end);
 
 if isempty(photo2), return; end
 
@@ -85,16 +87,16 @@ photo2 = mean(double(photo2), 4)/255;
 diffImg = abs(photo1 - photo2);
 if size(diffImg, 3) == 3, diffImg = rgb2gray(diffImg); end
 % Denoise image by a median filter
-diffImg   = medfilt2(diffImg, [3 3]);
+%diffImg   = medfilt2(diffImg, [3 3]);
 diffImgBW = im2bw(diffImg, graythresh(diffImg));
 % Find connected components
 CC = bwconncomp(diffImgBW);
 photoCentroids = regionprops(CC, 'Centroid','Area',...
                              'MajorAxisLength','MinorAxisLength');
 % Filter connected regions
-idx = ([photoCentroids.Area] > 20 & ...
+idx = ([photoCentroids.Area] > 50 & ...
        [photoCentroids.MajorAxisLength] ./ ...
-       [photoCentroids.MinorAxisLength] < 2);
+       [photoCentroids.MinorAxisLength] < 1.5);
 photoCentroids = photoCentroids(idx);
 % Convert centroids to N-by-2 matrix
 photoCentroids = cat(1, photoCentroids.Centroid);
@@ -123,9 +125,14 @@ transS = cp2tform(photoCentroids, imgCentroids, 'projective');
 
 mappedImg = imtransform(photo2(roiUlY:roiLrY, roiUlX:roiLrX), transS);
 mappedImg = mappedImg(30:end-30, 30:end-30);
-mappedImg = padarray(mappedImg, [46 55], 'replicate', 'post');
-mappedImg = padarray(mappedImg, [47 55], 'replicate', 'pre');
+mappedImg   = medfilt2(mappedImg, [5 5]);
+mappedImg(mappedImg < 0.5) = nan;
+%mappedImg = padarray(mappedImg, [46 55], 'replicate', 'post');
+%mappedImg = padarray(mappedImg, [47 55], 'replicate', 'pre');
 mappedImg = imresize(mappedImg, hG.inputImgSz);
+mappedImg = imrotate(mappedImg, 180);
+
+
 
 % Compute total msk change ratio
 mskRatio  = repmat(1 ./ mappedImg,[1 1 3]);
@@ -143,11 +150,16 @@ mskRatioPix = cutImgToPix(mskRatio,hG);
 
 % Apply to hG dispImg
 for curPix = 1:length(hG.pixelets)
-    hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk.*mskRatioPix{curPix};
+    pix = pixelets{curPix};
+    % Change display size should not change the mask size...
+    % Should fix it elsewhere
+    % but for convenience, I just resize new mask here...
+    hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk.*...
+        imresize(mskRatioPix{curPix}, hG.pixelets{curPix}.dispSize);
     % Restore to original settings
-    hG.pixelets{curPix}.imgContent = pixelets{curPix}.imgContent;
-    hG.pixelets{curPix}.dispImg  = pixelets{curPix}.imgContent .* ...
-        hG.pixelets{curPix}.msk;
+    hG.pixelets{curPix}.imgContent = pix.imgContent;
+    hG.pixelets{curPix}.dispImg  = imresize(pix.imgContent, ...
+        pixelets{curPix}.dispSize).* hG.pixelets{curPix}.msk;
 end
 
 %  Draw to screen
