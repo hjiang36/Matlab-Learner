@@ -165,7 +165,7 @@ end
 %  Draw to screen
 hG.dispI = zeros(size(hG.dispI));
 for curPix = 1 : length(hG.pixelets)
-    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+    hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
 end
 
 imshow(hG.dispI);
@@ -175,10 +175,4 @@ imshow(hG.dispI);
 %% Restore to original image
 hG.pixelets = pixelets;
 
-end
-
-%% Aux Functions
-function Img = drawOnCanvas(Img,pix)
-    Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1)-1,...
-        pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2)-1,:) = pix.dispImg;
 end

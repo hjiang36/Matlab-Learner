@@ -139,7 +139,7 @@ hG.dispI = zeros(round(1.5*M),round(1.5*N),K);
 
 % Draw Pixelets
 for curPix = 1 : nCols
-    hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+    hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
 end
 
 % Show Image
@@ -203,16 +203,6 @@ end
 
 end % End of function initPixelets
 
-function Img = drawOnCanvas(Img,pix)
-    Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1)-1,...
-        pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2)-1,:) = pix.dispImg;
-end
-
-function Img = eraseFromCanvas(Img,pix)
-    Img(pix.dispPos(1):pix.dispPos(1)+pix.dispSize(1),...
-        pix.dispPos(2):pix.dispPos(2)+pix.dispSize(2),:) = 0;
-end
-
 function [pixInd,pix] = findPixelet(pixelets, clickPos)
     for pixInd = 1 : length(pixelets)
         pix = pixelets{pixInd};
@@ -236,11 +226,11 @@ function mouseMove(~,~)
     if ~hG.mouseDown, return; end
     curPoint = round(get(gca, 'CurrentPoint'));
     curPix = hG.selected;
-    hG.dispI = eraseFromCanvas(hG.dispI,hG.pixelets{curPix});
+    hG.dispI = erasePixelet(hG.dispI,hG.pixelets{curPix});
     hG.pixelets{curPix}.dispPos = hG.pixelets{curPix}.dispPos+...
                                   curPoint(1,[2 1]) - hG.downPos;
     hG.downPos = curPoint(1,[2 1]);
-    hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
+    hG.dispI = drawPixelet(hG.dispI,hG.pixelets{curPix});
     %set(hG.imgHandle,'CData',hG.dispI);
     %drawnow;
     imshow(hG.dispI);
@@ -287,7 +277,7 @@ function mouseDown(~,~)
         end
         % Deal with dispSize
         if any(pix.dispSize ~= str2double(answer(3:4)'))
-            hG.dispI = eraseFromCanvas(hG.dispI,hG.pixelets{curPix});
+            hG.dispI = erasePixelet(hG.dispI,hG.pixelets{curPix});
             hG.pixelets{curPix}.dispSize = [str2double(answer{3})...
                                         str2double(answer{4})];
             hG.pixelets{curPix}.msk = imresize(hG.pixelets{curPix}.msk,...
@@ -296,7 +286,7 @@ function mouseDown(~,~)
                 hG.pixelets{curPix}.dispSize).*hG.pixelets{curPix}.msk;
         end
         % Draw to Screen
-        hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
         %truesize;
     elseif strcmpi(get(hG.fig,'selectiontype'),'normal') % Left click
@@ -319,7 +309,7 @@ function mouseDown(~,~)
         hG.pixelets{curPix}.dispImg = imresize(hG.pixelets{curPix}.imgContent,...
             hG.pixelets{curPix}.dispSize).*hG.pixelets{curPix}.msk;
         % Draw to Screen
-        hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
         setappdata(hG.fig,'handles',hG);
         %truesize;
@@ -335,7 +325,7 @@ function mouseDown(~,~)
         hG.pixelets{curPix}.dispImg = imresize(hG.pixelets{curPix}.imgContent,...
             hG.pixelets{curPix}.dispSize).*hG.pixelets{curPix}.msk;
         % Draw to Screen
-        hG.dispI = drawOnCanvas(hG.dispI,hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI,hG.pixelets{curPix});
         imshow(hG.dispI);
         %truesize;
     end
@@ -512,7 +502,7 @@ function keyPress(~,evt)
     % Redraw all here
     hG.dispI = zeros(size(hG.dispI));
     for curPix = 1 : length(hG.pixelets)
-        hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
     %truesize;
@@ -570,7 +560,7 @@ function loadNewImg(~,~)
     % Redraw all here
     hG.dispI = zeros(size(hG.dispI));
     for curPix = 1 : length(hG.pixelets)
-        hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
     %truesize;
@@ -633,7 +623,7 @@ function adjOverlap(~,~)
     % Redraw all here
     hG.dispI = zeros(size(hG.dispI));
     for curPix = 1 : length(hG.pixelets)
-        hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{curPix});
+        hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
     end
     imshow(hG.dispI);
     setappdata(hG.fig,'handles',hG);
@@ -706,7 +696,7 @@ function calibrateMagnification(~,~)
     % Enlarge to fit to right
     ratio  = 1.1;
     while ratio > 1.01
-        hG.dispI = eraseFromCanvas(hG.dispI,hG.pixelets{2});
+        hG.dispI = erasePixelet(hG.dispI,hG.pixelets{2});
         hG.pixelets{2}.dispSize = [hG.pixelets{2}.dispSize(1) ...
                                    hG.pixelets{2}.dispSize(2) + 5];
         hG.pixelets{2}.msk = imresize(hG.pixelets{2}.msk,...
@@ -750,19 +740,4 @@ function [sz, blankImg, diffImg] = pixeletSizeInPhoto(hG, adpName, devID, blankI
     CC = bwconncomp(diffImgBW);
     photoSz = regionprops(CC,'Area');
     sz = max([photoSz.Area]);
-end
-
-function refreshPixelets(hG, seq)
-    if nargin < 1
-        hG.fig = findobj('Tag','PixeletAdjustment');
-        hG = getappdata(hG.fig,'handles');
-    end
-    if nargin < 2, seq = 1 : length(hG.pixelets); end
-    % Redraw all here
-    hG.dispI = zeros(size(hG.dispI));
-    for curPixIndx = 1 : length(hG.pixelets)
-        hG.dispI = drawOnCanvas(hG.dispI, hG.pixelets{seq(curPixIndx)});
-    end
-    imshow(hG.dispI);
-    drawnow();
 end
