@@ -269,7 +269,7 @@ function mouseDown(~,~)
         % Deal with Blue Size
         newBlur = str2double(answer(1:2));
         if any(newBlur ~= [pix.blurL; pix.blurR])
-            hG.pixelets{curPix}.msk = adjPixBlurSize(pix,newBlur);
+            hG.pixelets{curPix}.msk = pixeletAdjBlurSize(pix,newBlur);
             hG.pixelets{curPix}.blurL = newBlur(1);
             hG.pixelets{curPix}.blurR = newBlur(2);
             hG.pixelets{curPix}.dispImg = hG.pixelets{curPix}.imgContent.*...
@@ -352,22 +352,6 @@ function msk = adjMskByCurve(curMsk, direction)
     dcm_obj = datacursormode(fig);
     set(dcm_obj,'DisplayStyle','datatip',...
     'SnapToDataVertex','on','Enable','on');
-end
-
-function msk = adjPixBlurSize(pix,newBlur) % New blur contains only l/r now
-    msk = pix.msk;
-    oldBlurMsk = genBlurMsk([pix.blurL pix.blurR],size(msk));
-    newBlurMsk = genBlurMsk(newBlur,size(msk));
-    oldBlurMsk(oldBlurMsk == 0) = Inf;
-    msk = msk .* newBlurMsk ./ oldBlurMsk;
-end
-
-function msk = genBlurMsk(blurSize,mskSize)
-    msk = ones(1,mskSize(2));
-    msk(1:blurSize(1)) = linspace(0,1,blurSize(1));
-    msk(end-blurSize(2)+1:end) = linspace(1,0,blurSize(2));
-    msk = repmat(msk,[mskSize(1) 1 mskSize(3)]);
-    msk = msk.^(1/2.2);
 end
 
 function msk = adjMskByRegion(curMsk)
