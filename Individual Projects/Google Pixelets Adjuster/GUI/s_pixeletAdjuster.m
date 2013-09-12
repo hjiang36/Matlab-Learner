@@ -1,6 +1,8 @@
 %% d_pixeletAdjustment
+%    main entrance of pixeltet adjuster GUI
 %
-%  Adjust Position and uniformity
+%  Supported functionalities:
+%
 %
 %  ToDo:
 %    1. Calibration by Camera
@@ -12,7 +14,7 @@
 %
 %  (HJ) Aug, 2013
 
-function d_pixeletAdjustment
+function s_pixeletAdjuster
 %% Load Image File
 [FileName,PathName] = uigetfile({'*.jpg;*.jpeg','JPEG Image';...
                                  '*.png','PNG Image';...
@@ -87,11 +89,11 @@ set(hG.fig,'Menu','None');
 
 % Create custom menu bar
 mh = uimenu(hG.fig,'Label','File'); 
-uimenu(mh, 'Label', 'Load Image', 'Callback',@loadNewImg);
-uimenu(mh, 'Label', 'Save Settings', 'Callback',@saveSettings);
-uimenu(mh, 'Label', 'Load Settings', 'Callback',@loadSettings);
-uimenu(mh, 'Label', 'Clear Settings', 'Callback',@clearSettings);
-uimenu(mh, 'Label', 'Clear Window Pos', 'Callback',@clearWindowPos);
+uimenu(mh, 'Label', 'Load Image', 'Callback', @paMenuLoadImg);
+uimenu(mh, 'Label', 'Save Settings', 'Callback', @paMenuSaveSettings);
+uimenu(mh, 'Label', 'Load Settings', 'Callback', @paMenuLoadSettings);
+uimenu(mh, 'Label', 'Clear Settings', 'Callback',@paMenuClearSettings);
+uimenu(mh, 'Label', 'Clear Window Pos', 'Callback', @paMenuClearWindowPos);
 uimenu(mh, 'Label', 'Quit','Callback', 'close(gcf); return;',... 
            'Separator', 'on', 'Accelerator', 'Q');
 
@@ -105,7 +107,7 @@ uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
 uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @adjTotalSize);
 
 % Draw Panels
-hG.main = uipanel(... % Main panel - for display composed images
+hG.main = uipanel(... % Main panel
     'Title', 'Dispaly Area',...
     'Parent',hG.fig,...
     'Position', [0.005 0.01 0.99 0.98],...
@@ -203,18 +205,6 @@ end
 
 end % End of function initPixelets
 
-function [pixInd,pix] = findPixelet(pixelets, clickPos)
-    for pixInd = 1 : length(pixelets)
-        pix = pixelets{pixInd};
-        if clickPos(1) >= pix.dispPos(1) && ...
-           clickPos(1) <= pix.dispPos(1) + pix.dispSize(1) && ...
-           clickPos(2) >= pix.dispPos(2) && ...
-           clickPos(2) <= pix.dispPos(2) + pix.dispSize(2)
-            break;
-        end
-    end
-end
-
 
 %% Mouse Callbacks
 function mouseMove(~,~)
@@ -249,7 +239,7 @@ function mouseDown(~,~)
         pos = get(gca,'CurrentPoint');
     end
     
-    [curPix,pix] = findPixelet(hG.pixelets,pos(1,[2 1]));
+    [curPix,pix] = pixeletIndxByPos(hG.pixelets,pos(1,[2 1]));
     if ~curPix, return; end
     
     % Save History
@@ -332,7 +322,7 @@ function mouseDown(~,~)
     setappdata(hG.fig,'handles',hG);
 end
 
-function mouseUp(~,~)
+function mouseUp(~, ~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
     hG.mouseDown = false;
@@ -530,49 +520,6 @@ end
 
 
 %% Menu bar callbacks
-function loadNewImg(~,~)
-    hG.fig = findobj('Tag','PixeletAdjustment');
-    hG = getappdata(hG.fig,'handles');
-    [FileName,PathName] = uigetfile({'*.jpg;*.jpeg','JPEG Image';...
-                                 '*.png','PNG Image';...
-                                 '*.*','All Files'});
-
-    if FileName == 0, return; end
-    Img = im2double(imread(fullfile(PathName,FileName)));
-    hG  = setPixContent(hG, Img);
-    hG.inputImg = imresize(Img, hG.inputImgSz);
-    % Redraw all here
-    hG.dispI = zeros(size(hG.dispI));
-    for curPix = 1 : length(hG.pixelets)
-        hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
-    end
-    imshow(hG.dispI);
-    %truesize;
-    setappdata(hG.fig,'handles',hG);
-end
-
-function saveSettings(~,~)
-    hG.fig = findobj('Tag','PixeletAdjustment');
-    hG  = getappdata(hG.fig,'handles');
-    Pos =  get(gcf,'Position');
-    save pixeletSettings.mat hG Pos; 
-    msgbox('Saved');
-end
-
-function loadSettings(~,~)
-    if exist('pixeletSettings.mat','file');
-        c  = load('pixeletSettings.mat');
-        if ~isfield(c,'hG')
-            return;
-        end
-        hG = c.hG;
-        imshow(hG.dispI);
-        setappdata(hG.fig,'handles',hG);
-    else
-        msgbox('Cannot find settings file');
-    end
-end
-
 function calByCameraManual(~,~)
     hG.fig = findobj('Tag','PixeletAdjustment');
     hG = getappdata(hG.fig,'handles');
@@ -594,9 +541,8 @@ function adjOverlap(~,~)
     hG = getappdata(hG.fig,'handles');
     prompt = {'Overlap Size (pixels)'};
     dlg_title = 'Adjust Overlap';
-    num_lines = 1;
     def = {num2str(hG.overlapSize)};
-    answer = inputdlg(prompt,dlg_title,num_lines,def);
+    answer = inputdlg(prompt, dlg_title, 1, def);
    
     if isempty(answer), return; end
     overlapSize = str2double(answer{1});
@@ -605,33 +551,7 @@ function adjOverlap(~,~)
         hG = initPixelets(hG);
     end
     % Redraw all here
-    hG.dispI = zeros(size(hG.dispI));
-    for curPix = 1 : length(hG.pixelets)
-        hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
-    end
-    imshow(hG.dispI);
-    setappdata(hG.fig,'handles',hG);
-end
-
-function clearSettings(~,~)
-    while exist('pixeletSettings.mat','file')
-        delete(which('pixeletSettings.mat'))
-    end
-end
-
-function clearWindowPos(~,~)
-    if exist('pixeletSettings.mat','file')
-        c  = load('pixeletSettings.mat');
-        if ~isfield(c,'hG')
-            delete('pixeletSettings.mat');
-        else
-            hG = c.hG;
-            save pixeletSettings.mat hG;
-        end
-    end
-    hG.fig = findobj('Tag','PixeletAdjustment');
-    hG = getappdata(hG.fig,'handles');
-    hG.saveWindowPos = false;
+    refreshPixelets(hG);
     setappdata(hG.fig,'handles',hG);
 end
 
