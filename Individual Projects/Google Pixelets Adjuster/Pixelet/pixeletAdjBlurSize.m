@@ -19,14 +19,18 @@ function pix = pixeletAdjBlurSize(pix, blurSize)
 %  (HJ) Aug, 2013
 
 %% Check inputs
+if nargin < 1, error('pixelet structure required'); end
+if nargin < 2, error('new blur size required'); end
 
 %% Compute masks
 oldBlurMsk = genBlurMsk(pixeletGet(pix, 'blur size'), ...
                         pixeletGet(pix, 'mask size'));
-newBlurMsk = genBlurMsk(blurSize, pixeletGet(pix, 'blur size'));
+newBlurMsk = genBlurMsk(blurSize, pixeletGet(pix, 'mask size'));
 oldBlurMsk(oldBlurMsk == 0) = Inf;
 
 %% Adjust
 pix = pixeletSet(pix, 'mask', ...
     pixeletGet(pix, 'mask').* newBlurMsk ./ oldBlurMsk);
+pix.blurSize = blurSize;
+
 end
