@@ -39,7 +39,7 @@ if strcmpi(get(hG.fig,'selectiontype'),'alt') % Right click
     % Deal with Blue Size
     newBlur = str2double(answer(1:2));
     if any(newBlur ~= [pix.blurL; pix.blurR])
-        hG.pixelets{curPix} = pixeletAdjBlurSize(pix,newBlur);
+        hG.pixelets{curPix} = pixeletAdjBlurSize(pix, newBlur);
     end
     % Deal with dispSize
     hG.pixelets{curPix} = pixeletSet(pix, 'display size', ...
@@ -68,6 +68,7 @@ elseif strcmpi(get(hG.fig,'selectiontype'), 'open') % Double click
           pixeletGet(hG.pixelets{curPix}, 'msk') * scalar);
 
     % Save adjusted values
+    hG.dispI = refreshPixelets(hG);
     setappdata(hG.fig, 'handles', hG);
     
     % Adjust by Region, this part will be removed
@@ -78,6 +79,7 @@ elseif strcmpi(get(hG.fig,'selectiontype'), 'open') % Double click
 end
 
 %% Save adjusted value
+hG.dispI = refreshPixelets(hG);
 setappdata(hG.fig,'handles',hG);
 
 end

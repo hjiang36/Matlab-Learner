@@ -55,6 +55,7 @@ switch lower(strrep(param, ' ', ''))
         end
         pix.imgContent = val;
         pix.dispImg = pix.imgContent .* pix.msk;
+        pix.dispImg = imresize(pix.dispImg, pix.dispSize);
     case {'mask', 'msk'}
         if any(size(val) ~= size(pix.msk))
             warning('Resize new mask to old mask size');
@@ -62,6 +63,7 @@ switch lower(strrep(param, ' ', ''))
         end
         pix.msk = val;
         pix.dispImg = pix.imgContent .* pix.msk;
+        pix.dispImg = imresize(pix.dispImg, pix.dispSize);
     case {'displaysize', 'size', 'sz'}
         % set display size, display image get recomputed and the new image
         % get refreshed to screen if possible

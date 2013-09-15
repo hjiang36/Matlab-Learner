@@ -28,7 +28,7 @@ if numel(pos) ~= 2, error('position should contain 2 entries'); end
 
 %% Find first pixelet containing pos
 %  Loop over pixelets cell array
-for pixIndx = 1 : length(pixelets)
+for pixIndx = 1 : length(pixelets(:))
     pix   = pixelets{pixIndx};
     ulPos = pixeletGet(pix, 'ul pos');
     lrPos = pixeletGet(pix, 'lr pos');

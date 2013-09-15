@@ -21,6 +21,8 @@ hG = getappdata(hG.fig,'handles');
 
 if ~isfield(hG,'kbSelected')
     inEdit = false;
+else
+    inEdit = true;
 end
 
 curPix = hG.kbSelected;

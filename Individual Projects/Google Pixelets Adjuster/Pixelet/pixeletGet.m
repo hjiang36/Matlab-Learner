@@ -24,8 +24,8 @@ function val = pixeletGet(pix, param, varargin)
 %       {display size, size, sz}
 %       {display width, width}
 %       {display Height, height}
-%       {upper left position, ul pos}
-%       {lower right position, lr pos}
+%       {upper left position, ul pos, disp ul pos}
+%       {lower right position, lr pos, disp lr pos}
 %       {display center}
 %
 %    Position in source image
@@ -67,18 +67,18 @@ switch lower(strrep(param, ' ', ''))
     case {'imagecontentsize'}
         val = size(pix.imgContent);
     case {'mask', 'msk'} 
-        val = pix.msk;
+        if isfield(pix, 'msk'), val = pix.msk; end
     case {'masksize', 'msksz'}
-        val = size(pix.msk);
+        if isfield(pix, 'msk'), val = size(pix.msk); end
     case {'displaysize', 'size', 'sz'}
-        val = pix.dispSize;
+        if isfield(pix, 'dispSize'), val = pix.dispSize; end
     case {'displaywidth', 'width'}
-        val = pix.dispSize(2);
+        if isfield(pix, 'dispSize'), val = pix.dispSize(2); end
     case {'displayheight', 'height'}
-        val = pix.dispSize(1);
-    case {'upperleftposition', 'ulpos'}
-        val = pix.dispPos;
-    case {'lowerrightposition', 'lrpos'}
+        if isfield(pix, 'dispSize'), val = pix.dispSize(1); end
+    case {'upperleftposition', 'ulpos', 'dispulpos'}
+        if isfield(pix, 'dispPos'), val = pix.dispPos; end
+    case {'lowerrightposition', 'lrpos', 'displrpos'}
         val = pix.dispPos + pix.dispSize;
     case {'sourceupperleftpos', 'inulpos'}
         if isfield(pix, 'srcUl'), val = pix.srcUl; end

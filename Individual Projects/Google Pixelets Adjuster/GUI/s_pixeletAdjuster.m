@@ -39,15 +39,16 @@ end
 %% Load Init Parameters
 prompt = {'Number of Columns', ...
           'Number of Rows', ...
-          'Overlap Size (pixels)'};
+          'Horizontal Overlap Size', ...
+          'Vertical Overlap Size'};
 dlg_title = 'Init Parameters';
-def = {'3', '1', '20'};
+def = {'3', '1', '20', '20'};
 answer = inputdlg(prompt, dlg_title, 1, def);
 
 if isempty(answer), return; end
 hG.nCols       = str2double(answer{1});
 hG.nRows       = str2double(answer{2});
-hG.overlapSize = str2double(answer{3});
+hG.overlapSize = [str2double(answer{3}) str2double(answer{4})];
 
 %% Init Pixelet Structure
 hG.pixelets      = cell(hG.nRows, hG.nCols);
@@ -55,8 +56,9 @@ hG.pixelets      = cell(hG.nRows, hG.nCols);
 hG.inputImgSz    = [M N];
 hG.inputImg      = Img;
 hG.saveWindowPos = true;
-hG               = initPixelets(hG);
-% hG.pixelets = pixeletsFromImage(Image, [nRows nCols], overlap);
+hG.gapSize       = [20 20];
+hG.pixelets      = pixeletsFromImage(Img, hG.nRows, hG.nCols, ...
+                    hG.overlapSize, hG.gapSize);
 
 %% Display Image on Black Background
 %  if pixelet adjuster exist, close it
@@ -84,9 +86,9 @@ set(hG.fig,...
     'Resize','on',...
     'Position',[fig_pos(1),fig_pos(2),fig_width,fig_height],...
     'Name','Pixelets Adjustment Demo',...
-    'KeyPressFcn',@keyPress,...
+    'KeyPressFcn',@paKbPressed,...
     'Interruptible', 'off', ...
-    'CloseRequestFcn',@onCloseRequest...
+    'CloseRequestFcn',@paOnCloseRequest...
     );
 
 % Hide Button
@@ -109,8 +111,8 @@ uimenu(mh, 'Label', 'By Camera (Auto)', 'Callback', @paCalByCameraAuto);
 uimenu(mh, 'Label', 'Magnification', 'Callback',    @paCalMagnification);
 
 mh = uimenu(hG.fig, 'Label', 'Adjustment');
-uimenu(mh,'Label','Adj Overlap','Callback',@adjOverlap);
-uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @adjTotalSize);
+uimenu(mh,'Label','Adj Overlap','Callback', @paAdjOverlap);
+uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @paAdjTotalSize);
 
 % Draw Panels
 hG.main = uipanel(... % Main panel
@@ -137,7 +139,7 @@ hG.kbSelected = 1;
 
 % Set Callbacks
 set(hG.fig, 'WindowButtonMotionFcn', @paMouseMove);
-set(hG.fig, 'WindowButtonDownFcn', @mouseDown);
+set(hG.fig, 'WindowButtonDownFcn', @paMouseDown);
 set(hG.fig, 'WindowButtonUpFcn',@paMouseUp);
 set(hG.fig, 'CurrentAxes', hG.ax);
 

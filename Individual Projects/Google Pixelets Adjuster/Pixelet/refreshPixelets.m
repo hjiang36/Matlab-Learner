@@ -17,15 +17,14 @@ function dispI = refreshPixelets(hG, seq)
  
 %% Check inputs
 if nargin < 1 || isempty(hG)
-    hG.fig = findobj('Tag','PixeletAdjustment');
-    if isempty(hG.fig)
-        dispI = []; 
+    hG = paGetHandler();
+    if isempty(hG)
+        dispI = [];
         return;
     end
-    hG = getappdata(hG.fig,'handles');
 end
 
-if nargin < 2, seq = 1 : length(hG.pixelets); end
+if nargin < 2, seq = 1 : length(hG.pixelets(:)); end
     
 %% Redraw pixelet sequence
 for curPixIndx = 1 : length(seq)
