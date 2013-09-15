@@ -92,7 +92,8 @@ for curRow = 1 : nRows
         
         % Compute position in display image
         if isempty(pixeletGet(pix, 'disp ul pos'))
-            pix.dispPos = pix.srcUl + [curRow-1 curCol-1].*gapSize;
+            pix.dispPos = pix.srcUl + [curRow-1 curCol-1].* ...
+                          ([overlapV overlapH] + gapSize);
             pix.dispSize = pix.srcLr - pix.srcUl + 1;
         end
         

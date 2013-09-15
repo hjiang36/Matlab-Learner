@@ -30,7 +30,7 @@ if size(Img,1) ~= hG.inputImgSz(1) || size(Img,2) ~= hG.inputImgSz(2)
 end
 
 %% Cut Img to pixelets
-pixContent = cutImgToPix(Img,hG);
+pixContent = cutImgToPix(Img, hG);
 
 %% Set new image to hG
 for curPix = 1 : length(pixContent)

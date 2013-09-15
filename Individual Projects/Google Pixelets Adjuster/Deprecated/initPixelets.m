@@ -1,6 +1,16 @@
-%% This function is deprecated
-%  HJ will replace it by pixeletsFromImage soon
 function hG = initPixelets(hG)
+%% function initPixelets(hG)
+%  This function is deprecated and will not be used in future program.
+%  Please try to use pixeletsFromImage instead.
+%
+%  This function sets up pixlets structure based on the prameters in handle
+%  of pixelet adjuster structure (hG). This function only supports 1D
+%  pixelet topology. For 2D, please us pixeletFromImage instead.
+%
+%  See also:
+%    pixeletsFromImage
+%
+%  (HJ) Sep, 2013
 
 M     = hG.inputImgSz(1); 
 N     = hG.inputImgSz(2);

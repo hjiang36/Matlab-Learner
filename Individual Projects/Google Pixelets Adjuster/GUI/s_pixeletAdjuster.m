@@ -6,7 +6,27 @@
 %    Image Aquisition Toolbox
 %
 %  Supported functionalities:
+%    Basic:
+%      - Image replication and pixelet formation
+%      - Settings saving / loading / clearing
+%      - Export to OpenGL pixelet renderer supported format
+%      - Revert last operation
 %
+%    Adjustments:
+%      - Pixelet position adjustment (mouse dragging)
+%      - Pixelet position adjustment (keyboard selection)
+%      - Window position adjustment  (keyboard)
+%      - Pixelet blur size adjustment
+%      - Pixelet display size adjustment
+%      - Pixelet mask mean value adjustment
+%      - Pixelet mask region adjustment
+%      - Pixelet overlap size adjustment
+%      - Pixelet gap size adjustment
+%
+%    Calibration:
+%      - Camera calibration for uniformity (semi-auto)
+%      - Camera calibration for position
+%      - Camera calibration for uniformity (auto)
 %
 %  ToDo:
 %    1. Calibration by Camera
@@ -15,11 +35,13 @@
 %    4. Export to OpenGL usable format
 %
 %  See also:
-%    calibrationByCamera, setPixContent, imgCapturing
+%    pixeletsFromImage, pixeletGet, pixeletSet
 %
 %  (HJ) Aug, 2013
 
-function s_pixeletAdjuster
+%% Clean up
+clc; clear;
+
 %% Load Image File
 [FileName,PathName] = uigetfile({'*.jpg;*.jpeg','JPEG Image';...
                                  '*.png','PNG Image';...
@@ -56,7 +78,7 @@ hG.pixelets      = cell(hG.nRows, hG.nCols);
 hG.inputImgSz    = [M N];
 hG.inputImg      = Img;
 hG.saveWindowPos = true;
-hG.gapSize       = [20 20];
+hG.gapSize       = [20 20]; % Should change to user inputs
 hG.pixelets      = pixeletsFromImage(Img, hG.nRows, hG.nCols, ...
                     hG.overlapSize, hG.gapSize);
 
@@ -111,8 +133,9 @@ uimenu(mh, 'Label', 'By Camera (Auto)', 'Callback', @paCalByCameraAuto);
 uimenu(mh, 'Label', 'Magnification', 'Callback',    @paCalMagnification);
 
 mh = uimenu(hG.fig, 'Label', 'Adjustment');
-uimenu(mh,'Label','Adj Overlap','Callback', @paAdjOverlap);
+uimenu(mh, 'Label', 'Adj Overlap','Callback', @paAdjOverlap);
 uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @paAdjTotalSize);
+uimenu(mh, 'Label', 'Adj Gap Size', 'Callback', @paAdjGapSize);
 
 % Draw Panels
 hG.main = uipanel(... % Main panel
@@ -144,11 +167,9 @@ set(hG.fig, 'WindowButtonUpFcn',@paMouseUp);
 set(hG.fig, 'CurrentAxes', hG.ax);
 
 % Init display image
-hG.dispI = zeros(round(1.2*M),round(1.2*N),K);
+hG.dispI = zeros(round(1.2*M), round(1.2*N), K);
 
 
 % Draw Pixelets
 hG.dispI = refreshPixelets(hG);
 setappdata(hG.fig,'handles',hG);
-
-end

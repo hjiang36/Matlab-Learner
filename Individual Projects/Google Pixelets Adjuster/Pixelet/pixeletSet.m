@@ -112,7 +112,4 @@ switch lower(strrep(param, ' ', ''))
         warning(['Unknown parameter ' param ' encountered.']);
 end
 
-%% Redraw pixelet if possible
-refreshPixelets();
-
 end

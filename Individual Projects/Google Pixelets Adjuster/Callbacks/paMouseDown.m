@@ -1,8 +1,17 @@
 function paMouseDown(~, ~)
 %% function paMouseDown
-%    put comments here
+%    This routine is the mouse down callback function for pixelet adjuster
+%    program. This function handles all kinds of mouse click to the pixelet
+%    adjuster window.
+%    
+%  Click types:
+%    Left click   - left button down indicates that dragging of certain
+%                   pixelet starts
+%    Right click  - Adjust blur size and display size
+%    Double click - Adjust mask values
 %
-%
+%  See also
+%    s_pixeletAdjuster
 %
 %  (HJ) Aug, 2013
 

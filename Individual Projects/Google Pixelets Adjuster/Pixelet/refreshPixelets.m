@@ -27,8 +27,17 @@ end
 if nargin < 2, seq = 1 : length(hG.pixelets(:)); end
     
 %% Redraw pixelet sequence
-for curPixIndx = 1 : length(seq)
-    hG.dispI = erasePixelet(hG.dispI, hG.pixelets{seq(curPixIndx)});
+%  Erase
+if length(seq) == length(hG.pixelets(:))
+    hG.dispI(:) = 0; % Redraw all, set to black
+else
+    for curPixIndx = 1 : length(seq)
+        hG.dispI = erasePixelet(hG.dispI, hG.pixelets{seq(curPixIndx)});
+    end
+end
+
+% Draw
+for curPixIndx = 1 :length(seq)
     hG.dispI = drawPixelet(hG.dispI, hG.pixelets{seq(curPixIndx)});
 end
 

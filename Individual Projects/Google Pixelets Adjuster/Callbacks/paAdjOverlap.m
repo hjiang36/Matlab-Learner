@@ -15,18 +15,20 @@ hG = paGetHandler();
 if isempty(hG), return; end
 
 %% Get new overlap size
-prompt = {'Overlap Size (pixels)'};
+prompt = {'Horizontal Overlap Size', 'Vertical Overlap Size'};
 dlg_title = 'Adjust Overlap';
-def = {num2str(hG.overlapSize)};
+def = {num2str(hG.overlapSize(1)), num2str(hG.overlapSize(2))};
 answer = inputdlg(prompt, dlg_title, 1, def);
 
 if isempty(answer), return; end
-overlapSize = str2double(answer{1});
+overlapH = str2double(answer{1});
+overlapV = str2double(answer{2});
 
 %% Recreate pixelets
-if overlapSize ~= hG.overlapSize
-    hG.overlapSize = overlapSize;
-    hG = initPixelets(hG);
+if any([overlapH, overlapV] ~= hG.overlapSize)
+    hG.overlapSize = [overlapH, overlapV];
+    hG.pixelets    = pixeletsFromImage(hG.inputImg, hG.nRows, hG.nCols, ...
+        hG.overlapSize, hG.gapSize);
 end
 % Redraw all here
 hG.dispI = refreshPixelets(hG);
