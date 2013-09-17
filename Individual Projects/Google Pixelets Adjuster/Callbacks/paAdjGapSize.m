@@ -39,7 +39,7 @@ for curRow = 1 : hG.nRows
     end
 end
 
-hG.gapSize = [hG.gapSizeH hG.gapSizeV];
+hG.gapSize = [gapSizeH gapSizeV];
 
 % Redraw all here
 hG.dispI = refreshPixelets(hG);

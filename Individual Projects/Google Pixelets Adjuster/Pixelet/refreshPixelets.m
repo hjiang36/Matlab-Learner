@@ -1,11 +1,13 @@
-function dispI = refreshPixelets(hG, seq)
-%% function refreshPixelets(hG, [seq])
+function dispI = refreshPixelets(hG, seq, isVisible)
+%% function refreshPixelets(hG, [seq], isVisible)
 %    redraw pixelets to window defined in hG
 %
 %  Inputs:
-%    hG    - pixelet adjuster graph handler
-%    seq   - vector of pixelet index to be redrawn, default redraw all
-%            sequentially
+%    hG        - pixelet adjuster graph handler
+%    seq       - vector of pixelet index to be redrawn, default redraw all
+%                sequentially
+%    isVisible - bool, indicating whether or not to draw it to screen,
+%                default true
 %
 %  Outputs:
 %    dispI - the image shown to hG.fig
@@ -24,7 +26,8 @@ if nargin < 1 || isempty(hG)
     end
 end
 
-if nargin < 2, seq = 1 : length(hG.pixelets(:)); end
+if nargin < 2 || isempty(seq), seq = 1 : length(hG.pixelets(:)); end
+if nargin < 3, isVisible = true; end
     
 %% Redraw pixelet sequence
 %  Erase
@@ -41,8 +44,10 @@ for curPixIndx = 1 :length(seq)
     hG.dispI = drawPixelet(hG.dispI, hG.pixelets{seq(curPixIndx)});
 end
 
-imshow(hG.dispI);
-drawnow();
+if isVisible
+    imshow(hG.dispI);
+    drawnow();
+end
 
 %% Set output
 dispI = hG.dispI;

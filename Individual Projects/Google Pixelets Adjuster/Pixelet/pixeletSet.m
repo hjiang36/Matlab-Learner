@@ -15,8 +15,8 @@ function pix = pixeletSet(pix, param, val, varargin)
 %
 %  Parameters supported:
 %    Content & Data:
-%      {image content, content}        % set content image
-%      {mask, msk}                     % set mask matrix
+%      {image content, content, img content}        % set content image
+%      {mask, msk}                                  % set mask matrix
 %    
 %    Display position & Size
 %       {display size, size, sz}       % display image size   (resize)
@@ -48,7 +48,7 @@ if nargin < 3, error('parameter value required'); end
 
 %% Set parameters
 switch lower(strrep(param, ' ', ''))
-    case {'imagecontent', 'content'}
+    case {'imagecontent', 'content', 'imgcontent'}
         if any(size(val) ~= size(pix.imgContent))
             warning('Resize new image content size to old one');
             val = imresize(val, size(pix.imgContent));

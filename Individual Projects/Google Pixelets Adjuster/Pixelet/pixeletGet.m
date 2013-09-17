@@ -21,12 +21,12 @@ function val = pixeletGet(pix, param, varargin)
 %      {mask size, mskSz}
 %    
 %    Display position & Size
-%       {display size, size, sz}
-%       {display width, width}
-%       {display Height, height}
-%       {upper left position, ul pos, disp ul pos}
-%       {lower right position, lr pos, disp lr pos}
-%       {display center}
+%      {display size, size, sz}
+%      {display width, width}
+%      {display Height, height}
+%      {upper left position, ul pos, disp ul pos}
+%      {lower right position, lr pos, disp lr pos}
+%      {display center}
 %
 %    Position in source image
 %      {source upper left pos, in ul pos}

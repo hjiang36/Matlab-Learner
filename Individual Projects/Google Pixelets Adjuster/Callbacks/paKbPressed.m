@@ -23,13 +23,12 @@ if ~isfield(hG,'kbSelected')
     inEdit = false;
 else
     inEdit = true;
-end
-
-curPix = hG.kbSelected;
-if ~curPix
-    curPos = get(hG.fig,'Position');
-else
-    curPos = hG.pixelets{curPix}.dispPos;
+    curPix = hG.kbSelected;
+    if ~curPix
+        curPos = get(hG.fig,'Position');
+    else
+        curPos = hG.pixelets{curPix}.dispPos;
+    end
 end
 
 %% Process key pressed request
@@ -93,7 +92,9 @@ switch evt.Key
         set(hG.fig, 'Position',[POS(1) POS(2) POS(3)-1 POS(4)-1]);
         setappdata(hG.fig,'handles',hG);
     case 'escape'
-        hG = rmfield(hG, 'kbSelected');
+        if isfield(hG, 'kbSelected')
+           hG = rmfield(hG, 'kbSelected');
+        end
     otherwise % Should be number keys - for selecting pixelets
         curPix = floor(str2double(evt.Key));% make sure curPix is int
         if isnan(curPix), return; end

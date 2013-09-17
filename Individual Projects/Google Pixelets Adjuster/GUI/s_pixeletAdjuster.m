@@ -8,20 +8,46 @@
 %  Supported functionalities:
 %    Basic:
 %      - Image replication and pixelet formation
+%          Run this script and follow the instructions
+%      - Change image content
+%          Click Menu->File->Load Image and choose a new input image
 %      - Settings saving / loading / clearing
+%          Click Menu->File->Save/Load/Clear Settings
 %      - Export to OpenGL pixelet renderer supported format
+%          Click Menu->File->Export Settings
 %      - Revert last operation
+%          Press CMD+z for mac / unix, Ctrl+z for windows
+%
 %
 %    Adjustments:
 %      - Pixelet position adjustment (mouse dragging)
+%          Left click and hold on the tile, drag and drop it to proper
+%          position
 %      - Pixelet position adjustment (keyboard selection)
+%          Press number keys (1~9) to select tile, press arrow keys to
+%          adjust positions, press ESC to confirm and exit edit mode
 %      - Window position adjustment  (keyboard)
+%          Press number key 0, press arrow keys (up/down/left/right) to
+%          move the whole window to proper positions and press ESC to
+%          confirm and exit edit mode
 %      - Pixelet blur size adjustment
+%          Right click on a pixelet and set the new horizontal and vertical
+%          blur size to the program
 %      - Pixelet display size adjustment
+%          Right click on a pixelet and set the new width and height to the
+%          program
 %      - Pixelet mask mean value adjustment
+%          Double click on one pixelet and fill in the new mean value of
+%          the mask of a pixelet
 %      - Pixelet mask region adjustment
+%          Double click on one pixelet, click OK for mean value adjustment
+%          and 
 %      - Pixelet overlap size adjustment
+%          Click Menue->Adjust->Adj Blur Size and input the new blur size
+%          to the program
 %      - Pixelet gap size adjustment
+%          Click Menu->Adjust->Adj Gap Size and input the new horizontal
+%          and vertical gap size to the program
 %
 %    Calibration:
 %      - Camera calibration for uniformity (semi-auto)
@@ -62,15 +88,18 @@ end
 prompt = {'Number of Columns', ...
           'Number of Rows', ...
           'Horizontal Overlap Size', ...
-          'Vertical Overlap Size'};
+          'Vertical Overlap Size', ...
+          'Horizontal Gap Size', ...
+          'Vertical Gap Size'};
 dlg_title = 'Init Parameters';
-def = {'3', '1', '20', '20'};
+def = {'3', '1', '20', '20', '20', '20'};
 answer = inputdlg(prompt, dlg_title, 1, def);
 
 if isempty(answer), return; end
 hG.nCols       = str2double(answer{1});
 hG.nRows       = str2double(answer{2});
 hG.overlapSize = [str2double(answer{3}) str2double(answer{4})];
+hG.gapSize     = [str2double(answer{5}) str2double(answer{6})];
 
 %% Init Pixelet Structure
 hG.pixelets      = cell(hG.nRows, hG.nCols);
@@ -78,7 +107,6 @@ hG.pixelets      = cell(hG.nRows, hG.nCols);
 hG.inputImgSz    = [M N];
 hG.inputImg      = Img;
 hG.saveWindowPos = true;
-hG.gapSize       = [20 20]; % Should change to user inputs
 hG.pixelets      = pixeletsFromImage(Img, hG.nRows, hG.nCols, ...
                     hG.overlapSize, hG.gapSize);
 
@@ -122,12 +150,14 @@ mh = uimenu(hG.fig,'Label','File');
 uimenu(mh, 'Label', 'Load Image', 'Callback',    @paMenuLoadImg);
 uimenu(mh, 'Label', 'Save Settings', 'Callback', @paMenuSaveSettings);
 uimenu(mh, 'Label', 'Load Settings', 'Callback', @paMenuLoadSettings);
+uimenu(mh, 'Label', 'Export Settings', 'Callback', @paMenuExportSettings);
 uimenu(mh, 'Label', 'Clear Settings', 'Callback',@paMenuClearSettings);
 uimenu(mh, 'Label', 'Clear Window Pos', 'Callback', @paMenuClearWindowPos);
 uimenu(mh, 'Label', 'Quit','Callback', 'close(gcf); return;',... 
            'Separator', 'on', 'Accelerator', 'Q');
 
 mh = uimenu(hG.fig,'Label','Calibration');
+uimenu(mh, 'Label', 'By Camera (Color)', 'Callback',@paCalColor);
 uimenu(mh, 'Label', 'By Camera (Manual)','Callback',@paCalByCameraManual);
 uimenu(mh, 'Label', 'By Camera (Auto)', 'Callback', @paCalByCameraAuto);
 uimenu(mh, 'Label', 'Magnification', 'Callback',    @paCalMagnification);
