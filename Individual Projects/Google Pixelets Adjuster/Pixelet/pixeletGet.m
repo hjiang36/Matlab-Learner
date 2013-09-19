@@ -79,7 +79,7 @@ switch lower(strrep(param, ' ', ''))
     case {'upperleftposition', 'ulpos', 'dispulpos'}
         if isfield(pix, 'dispPos'), val = pix.dispPos; end
     case {'lowerrightposition', 'lrpos', 'displrpos'}
-        val = pix.dispPos + pix.dispSize;
+        val = pix.dispPos + pix.dispSize - 1;
     case {'sourceupperleftpos', 'inulpos'}
         if isfield(pix, 'srcUl'), val = pix.srcUl; end
     case {'sourcelowerrightpos', 'inlrpos'}

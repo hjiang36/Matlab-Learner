@@ -151,8 +151,10 @@ uimenu(mh, 'Label', 'Load Image', 'Callback',    @paMenuLoadImg);
 uimenu(mh, 'Label', 'Save Settings', 'Callback', @paMenuSaveSettings);
 uimenu(mh, 'Label', 'Load Settings', 'Callback', @paMenuLoadSettings);
 uimenu(mh, 'Label', 'Export Settings', 'Callback', @paMenuExportSettings);
-uimenu(mh, 'Label', 'Clear Settings', 'Callback',@paMenuClearSettings);
+uimenu(mh, 'Label', 'Import Settings', 'Callback', @paMenuImportSettings);
+uimenu(mh, 'Label', 'Clear Settings', 'Callback', @paMenuClearSettings);
 uimenu(mh, 'Label', 'Clear Window Pos', 'Callback', @paMenuClearWindowPos);
+uimenu(mh, 'Label', 'Full Screen (PTB)','Callback', @paMenuFullScreen);
 uimenu(mh, 'Label', 'Quit','Callback', 'close(gcf); return;',... 
            'Separator', 'on', 'Accelerator', 'Q');
 
