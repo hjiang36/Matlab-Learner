@@ -16,7 +16,9 @@ if isempty(hG), error('pixelet adjuster window not found'); end
 
 %% Load pixelets positions
 %  Get positions
-pixPosFileName = fullfile(paRootPath,'Data', 'pixeletsPos.csv');
+%  pixPosFileName = fullfile(paRootPath,'Data', 'pixeletsPos.csv');
+[pixPosName, pathName]  = uigetfile({'*.csv','CSV'},'Select Pos File');
+pixPosFileName = fullfile(pathName, pixPosName);
 pixeletsPos    = csvread(pixPosFileName);
 
 assert(size(pixeletsPos, 1) == numel(hG.pixelets), ...
@@ -42,7 +44,9 @@ end
 
 %% Load mask data
 %  Get whole mask data
-pixMskFileName = fullfile(paRootPath, 'Data', 'pixeletsMsk.dat');
+% pixMskFileName = fullfile(paRootPath, 'Data', 'pixeletsMsk.dat');
+[pixMskName, pathName]  = uigetfile({'*.dat','DAT'}, 'Select Mask File');
+pixMskFileName = fullfile(pathName, pixMskName);
 fp = fopen(pixMskFileName,'rb');
 mskImg = fread(fp, 3*600*600, 'float'); % should have a way to know mask size
 fclose(fp);

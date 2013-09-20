@@ -27,7 +27,12 @@ for curPix = 1 : numel(hG.pixelets)
     pixeletsPos(curPix, [8 4]) = pixeletGet(pix, 'disp lr pos');
 end
 
-pixPosFileName = fullfile(paRootPath,'Data', 'pixeletsPos.csv');
+% pixPosFileName = fullfile(paRootPath,'Data', 'pixeletsPos.csv');
+pixPosPath = uigetdir;
+pixPosName = inputdlg('File Name','Pos File Name', 1, {'pixeletsPos.csv'});
+if isempty(pixPosName), return; end
+
+pixPosFileName = fullfile(pixPosPath, pixPosName{1});
 csvwrite(pixPosFileName, pixeletsPos);
 
 %% Save pixelets mask
@@ -46,7 +51,13 @@ for i = 1 : 3
     mskImg(:,:,i) = flipud(mskImg(:,:,i));
 end
 
-pixMskFileName = fullfile(paRootPath, 'Data', 'pixeletsMsk.dat');
+%pixMskFileName = fullfile(paRootPath, 'Data', 'pixeletsMsk.dat');
+pixMskPath = uigetdir;
+pixMskName = inputdlg('File Name', 'Mask File Name', 1, ...
+                      {'pixeletsMsk.dat'});
+if isempty(pixMskName), return; end
+
+pixMskFileName = fullfile(pixMskPath, pixMskName{1});
 fp = fopen(pixMskFileName,'wb');
 fwrite(fp,permute(mskImg, [3 2 1]),'float');
 fclose(fp);
