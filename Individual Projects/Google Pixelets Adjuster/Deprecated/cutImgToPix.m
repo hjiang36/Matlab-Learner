@@ -1,6 +1,7 @@
 function content = cutImgToPix(Img, params)
 %% function cutImgToPix
 %  Compute image content for each pixelet
+%  This function is deprecated
 %
 %  Inputs:
 %    Img     - image matrix to be cut

@@ -56,8 +56,9 @@ if strcmpi(get(hG.fig,'selectiontype'),'alt') % Right click
     
 elseif strcmpi(get(hG.fig,'selectiontype'), 'normal') % Left click
     hG.mouseDown = true;
-    hG.downPos  = round(pos(1,[2 1]));
-    hG.selected = curPix;
+    hG.downPos   = round(pos(1,[2 1]));
+    hG.selected  = curPix;
+    hG.kbSelected = curPix;
     
 elseif strcmpi(get(hG.fig,'selectiontype'), 'open') % Double click
     % Ask user for new mean luminance

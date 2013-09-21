@@ -36,6 +36,8 @@ switch evt.Key
     case 'uparrow'
         if ~inEdit, return; end
         if ~curPix
+            %this is to move the whole screen
+            %at the bottom of script we refresh
             set(hG.fig,'Position',[curPos(1) curPos(2)+1 curPos(3:4)]);
             return;
         elseif curPos(1)>1

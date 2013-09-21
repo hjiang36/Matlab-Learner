@@ -1,4 +1,4 @@
-function markerImg = createMarkerImage(centroids, imageSize, varargin)
+function markerImg = paCreateMarkerImage(centroids, imageSize, varargin)
 %% function createMarkerImage(centroids, varargin)
 %    create an white image with marker dots on it
 %
@@ -23,7 +23,7 @@ if nargin < 2, imageSize = [500 500]; end
 %% Create Marker
 markerImg = ones([imageSize 3]);
 for i = 1 : size(centroids, 1)
-    markerImg = drawCircles(markerImg, centroids(i,:), 20);
+    markerImg = drawCircles(markerImg, centroids(i,:), 10);
 end
 
 end
@@ -36,7 +36,7 @@ if nargin < 3, error('Circle radius  is required'); end
 if nargin < 4, circleColor = 0; end
 
 [M, N, ~] = size(img);
-[X, Y] = meshgrid(1:M, 1:N);
+[X, Y] = meshgrid(1:N, 1:M);
 if ismatrix(img) && isscalar(circleColor)
     img((X-center(1)).^2 + (Y-center(2)).^2 <= radius^2) = circleColor;
 elseif ndims(img) == 3

@@ -20,7 +20,7 @@ hG = getappdata(hG.fig,'handles');
 %% Manual Camera Calibration
 It = im2double(imread('popup_white - text.jpg'));
 Id = ones(size(It));
-hG = calibrationByCameraManual(hG,It,Id);
+hG = paCalCameraManual(hG,It,Id);
 
 %% Save adjusted pixelet structure
 setappdata(hG.fig,'handles',hG);

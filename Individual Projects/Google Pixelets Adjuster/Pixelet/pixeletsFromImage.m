@@ -65,6 +65,8 @@ end
 [M, N, ~]   = size(Img);
 overlapH    = overlapSize(1); % Horizontal overlap size
 overlapV    = overlapSize(2); % Vertical overlap size
+
+%  Compute non-overlap size inside one pixelet
 nonOverlapH = ceil((N - (nCols-1)*overlapH) / nCols);
 nonOverlapV = ceil((M - (nRows-1)*overlapV) / nRows);
 
@@ -83,6 +85,7 @@ for curRow = 1 : nRows
         srcLrX = curCol * (nonOverlapH + overlapH);
         if curCol > 1, srcUlX = srcUlX - overlapH; end
         if curCol == nCols, srcLrX = srcLrX - overlapH; end
+        % Make sure doesn't go beyond input image
         srcLrX = min(srcLrX, N); srcLrY = min(srcLrY, M);
         
         % Set position & content
@@ -100,12 +103,15 @@ for curRow = 1 : nRows
         
         % Generate mask
         if isempty(pixeletGet(pix, 'msk'))
+            % Have to check if it's along the edges
+            % Need to change this one later
             pix.msk = genBlurMsk([overlapH overlapH overlapV overlapV], ...
                            pix.dispSize);      
         end
         
         if any(size(pix.msk) ~= size(pix.imgContent))
-            pix.msk = imresize(pix.msk, pix.dispSize);
+            [m, n, ~] = size(pix.imgContent);
+            pix.msk = imresize(pix.msk, [m n]);
         end
         
         % Set overlap and blur size parameters

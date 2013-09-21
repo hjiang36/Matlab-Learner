@@ -1,4 +1,4 @@
-function hG = calibrationByCameraManual(hG, It, Id, varargin)
+function hG = paCalCameraManual(hG, It, Id, varargin)
 %% function calibrationByCameraManual(hG, It, Id, [varargin])
 %    script used to calibration brightness by camera
 %
@@ -52,6 +52,7 @@ cameraImg = imgCapturing(adaptorName, deviceID);
 %  Compute tranformed image
 mappedImg = interactiveImgMapping(cameraImg,Id,...
                 'transS',transS,'srcROI',camROI,'dstROI',itROI);
+mappedImg = im2double(mappedImg);
             
 % Convert to gray
 % do we need to calibrate RGB independently anyway?

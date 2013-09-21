@@ -17,7 +17,7 @@ if isempty(hG.fig), error('pixelet adjuster window not found'); end
 hG = getappdata(hG.fig,'handles');
 
 %% Auto camera calibration
-hG = calibrationByCameraAuto(hG);
+hG = paCalCameraAuto(hG);
 
 %% Save adjusted mask
 setappdata(hG.fig, 'handles', hG);

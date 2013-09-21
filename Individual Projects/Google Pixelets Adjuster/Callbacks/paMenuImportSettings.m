@@ -48,6 +48,7 @@ end
 [pixMskName, pathName]  = uigetfile({'*.dat','DAT'}, 'Select Mask File');
 pixMskFileName = fullfile(pathName, pixMskName);
 fp = fopen(pixMskFileName,'rb');
+warning('Should change mskImg data size to be flexible ASAP');
 mskImg = fread(fp, 3*600*600, 'float'); % should have a way to know mask size
 fclose(fp);
 mskImg = permute(reshape(mskImg, [3 600 600]), [3 2 1]);

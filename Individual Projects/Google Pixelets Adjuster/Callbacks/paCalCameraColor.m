@@ -1,4 +1,4 @@
-function paCalColor(~, ~)
+function paCalCameraColor(~, ~)
 %% function paCalColor
 %    This routine is the callback function for pixelet adjust
 %    Menu->Calibration->By Camera (Color)
@@ -21,6 +21,16 @@ end
 
 if isfield(hG, 'devID'), devID = hG.devID; else devID = 1; end
 if isfield(hG, 'gamma'), gamma = hG.gamma; else gamma = 2.2; end
+if isfield(hG, 'transS')
+    transS = hG.transS;
+    srcROI = hG.srcROI;
+else
+    [~, transS, srcROI] = cameraPosCalibration;
+    % These three lines save the camera positions
+    %hG.transS = transS;
+    %hG.srcROI = srcROI;
+    %refreshPixelets(hG);
+end
 
 %% Get mean color and brightness for each pixelet
 pixeletChannelMean = zeros(numel(hG.pixelets), 3);
@@ -32,6 +42,8 @@ imshow(dispImg); drawnow;
 blankImg  = imgCapturing(adpName, devID, 'show preview', false, ...
                          'number of frames', 10);
 blankImg  = mean(blankImg(:, :, :, 3:end),4)/255;
+blankImg  = imtransform(blankImg(srcROI(1):srcROI(3), ...
+                                 srcROI(2):srcROI(4), :), transS);
 
 for curPix = 1 : numel(hG.pixelets)
     % Turn off all pixelts except current one
@@ -46,15 +58,21 @@ for curPix = 1 : numel(hG.pixelets)
     photoImg = imgCapturing(adpName, devID, 'show preview', false, ...
                             'number of frames', 10);
     photoImg = mean(photoImg(:, :, :, 3:end), 4)/255;
+    photoImg = imtransform(photoImg(srcROI(1):srcROI(3), ...
+                                    srcROI(2):srcROI(4), :), transS);
     
     % Computre Region size
     diffImg = abs(photoImg - blankImg);
     grayDiffImg = rgb2gray(diffImg);
     bwImg   = im2bw(grayDiffImg, graythresh(grayDiffImg));
+    %This is the connected component that can be displayed
     CC = bwconncomp(bwImg);
+    %we are interested in teh area of interest
     pixeletArea = regionprops(CC, 'Area');
+    %Max is selected to get rid of the noise and have teh largest region =
+    %white area shown 
     pixeletArea = max([pixeletArea.Area]);
-    disp(num2str(pixeletArea));
+    % disp(num2str(pixeletArea));
     
     % Compute mean value for each channel
     for curChannel = 1 : 3

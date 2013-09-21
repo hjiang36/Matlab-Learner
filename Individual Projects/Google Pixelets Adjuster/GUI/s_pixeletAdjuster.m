@@ -159,7 +159,7 @@ uimenu(mh, 'Label', 'Quit','Callback', 'close(gcf); return;',...
            'Separator', 'on', 'Accelerator', 'Q');
 
 mh = uimenu(hG.fig,'Label','Calibration');
-uimenu(mh, 'Label', 'By Camera (Color)', 'Callback',@paCalColor);
+uimenu(mh, 'Label', 'By Camera (Color)', 'Callback',@paCalCameraColor);
 uimenu(mh, 'Label', 'By Camera (Manual)','Callback',@paCalByCameraManual);
 uimenu(mh, 'Label', 'By Camera (Auto)', 'Callback', @paCalByCameraAuto);
 uimenu(mh, 'Label', 'Magnification', 'Callback',    @paCalMagnification);

@@ -40,6 +40,9 @@ csvwrite(pixPosFileName, pixeletsPos);
 mskImg = zeros(M, N, 3);
 for curPix = 1 : numel(hG.pixelets)
     pix = hG.pixelets{curPix};
+    %since the displayContent is of correct size, sets the image content to
+    %all white, then pixeletSet recalculates displayedContent which ic mask
+    %* imageContent and resized, then it saves it
     pix = pixeletSet(pix, 'image content', ...
                      ones(pixeletGet(pix, 'image content size')));
     mskImg = drawPixelet(mskImg, pix);
@@ -47,6 +50,7 @@ end
 
 
 %% Write to File
+%  Flip it to make it consistant with OpenGL
 for i = 1 : 3
     mskImg(:,:,i) = flipud(mskImg(:,:,i));
 end
@@ -59,6 +63,7 @@ if isempty(pixMskName), return; end
 
 pixMskFileName = fullfile(pixMskPath, pixMskName{1});
 fp = fopen(pixMskFileName,'wb');
+% Change order of dimension to be consistant with OpenGL
 fwrite(fp,permute(mskImg, [3 2 1]),'float');
 fclose(fp);
 

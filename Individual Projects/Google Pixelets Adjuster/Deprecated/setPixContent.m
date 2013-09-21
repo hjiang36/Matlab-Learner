@@ -1,6 +1,8 @@
 function hG = setPixContent(hG, Img, isRedraw)
 %% function setPixContent(hG, Img, [isRedraw])
-%    set new image to pixelet adjustment window
+%    Set new image to pixelet adjustment window
+%    This function is deprecated, please try to use pixeletesFromImage
+%    instead
 %
 %  Inputs:
 %    hG       - handle of graph, created in d_pixeleAdjustment.m
@@ -33,7 +35,7 @@ end
 pixContent = cutImgToPix(Img, hG);
 
 %% Set new image to hG
-for curPix = 1 : length(pixContent)
+for curPix = 1 : numel(pixContent)
     %  set image content
     hG.pixelets{curPix}.imgContent = pixContent{curPix};
     %  set dispImg

@@ -37,16 +37,44 @@ function [hG, transS, srcROI, dstROI, varargout] = cameraPosCalibration(...
 %  (HJ) Aug, 2013
 
 %% Check inputs
-if nargin < 1, error('Hanle of d_pixeletAjustment (hG) required'); end
-if nargin < 2, adaptorName = 'macvideo'; end
-if nargin < 3, deviceID = 1; end
+%  Get pixelet adjuster handler
+if nargin < 1
+    hG = paGetHandler();
+    if isempty(hG)
+        error('Hanle of d_pixeletAjustment (hG) required');
+    end
+end
+%  Get camera information
+if nargin < 2
+    if isfield(hG, 'adpName')
+        adaptorName = hG.adpName;
+    else
+        adaptorName = 'macvideo'; 
+    end
+end
+
+if nargin < 3
+    if isfield(hG, 'devID')
+        deviceID = hG.devID;
+    else
+        deviceID = 1;
+    end
+end
+
+%  Check varargin
 if mod(length(varargin),2) ~= 0
     error('Parameters should be in pairs');
 end
 
-% Init output
-transS = []; srcROI = []; dstROI = [];
+% Init output and parameters
+transS = []; dstROI = [];
 varargout = {[], []};
+
+if isfield(hG, 'gamma')
+    gamma = hG.gamma;
+else
+    gamma = 2.2;
+end
 
 % Store original pixelet settings
 pixelets = hG.pixelets;
@@ -54,13 +82,17 @@ pixelets = hG.pixelets;
 %% Capture image with different marker set
 %  Create two marker images
 % This function has not been implemented yet
-imgCentroids = [40 200; 40 400; 420 200; 420 400;
-                160 240; 160 350; 340 240; 340 350];
-markerImg1 = createMarkerImage(imgCentroids); 
-markerImg2 = createMarkerImage([]);
+imgCentroids = [40 40; 40 400; 420 40; 420 400;
+                160 80; 160 350; 340 80; 340 350];
+markerImg1 = paCreateMarkerImage(imgCentroids, hG.inputImgSz); 
+markerImg2 = paCreateMarkerImage([], hG.inputImgSz);
 
 %  Show first image and capture first photo
-hG = setPixContent(hG, markerImg1, true);
+%  hG = setPixContent(hG, markerImg1, true);
+hG.pixelets = pixeletsFromImage(markerImg1, hG.nRows, hG.nCols, ...
+                                hG.overlapSize, hG.gapSize, pixelets);
+hG.dispI    = refreshPixelets(hG);
+
 [photo1, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 photo1 = photo1(:,:,:,5:end);
@@ -68,7 +100,10 @@ photo1 = photo1(:,:,:,5:end);
 if isempty(photo1), return; end
 
 %  Show second image and capture second photo
-hG = setPixContent(hG, markerImg2, true);
+hG.pixelets = pixeletsFromImage(markerImg2, hG.nRows, hG.nCols, ...
+                                hG.overlapSize, hG.gapSize, pixelets);
+hG.dispI    = refreshPixelets(hG);
+
 [photo2, adaptorName, deviceID] = imgCapturing( ...
     adaptorName, deviceID, 'Show Preview', false, 'Number of Frames', 10);
 photo2 = photo2(:,:,:,5:end);
@@ -102,11 +137,14 @@ photoCentroids = photoCentroids(idx);
 photoCentroids = cat(1, photoCentroids.Centroid);
 
 % Should replace here with ROI
+%If it can't find all teh fidicuals it sets an error
 assert(numel(photoCentroids) == numel(imgCentroids));
 
 %% Compute transformation matrix and region of interest
 %  Sort
 % This is not a good idea in real demo, but just leave it here
+%left upper to left upper, if we use cameraPointPositionGet we dont need to
+%worry about this
 photoCentroids(:,[3 4]) = round(photoCentroids / 50) * 50;
 photoCentroids = sortrows(photoCentroids,[3 4]);
 photoCentroids = photoCentroids(:, [1 2]);
@@ -120,15 +158,16 @@ roiLrY = round(max(photoCentroids(:,2)));
 photoCentroids(:,1) = round(photoCentroids(:,1) - roiUlX);
 photoCentroids(:,2) = round(photoCentroids(:,2) - roiUlY);
 
+srcROI = [roiUlY roiUlX roiLrY roiLrX];
+
 %  Compute transformation
 transS = cp2tform(photoCentroids, imgCentroids, 'projective');
 
-mappedImg = imtransform(photo2(roiUlY:roiLrY, roiUlX:roiLrX), transS);
+mappedImg = imtransform(photo2(roiUlY:roiLrY, roiUlX:roiLrX, :), transS);
 mappedImg = mappedImg(30:end-30, 30:end-30);
 mappedImg   = medfilt2(mappedImg, [5 5]);
 mappedImg(mappedImg < 0.5) = nan;
-%mappedImg = padarray(mappedImg, [46 55], 'replicate', 'post');
-%mappedImg = padarray(mappedImg, [47 55], 'replicate', 'pre');
+
 mappedImg = imresize(mappedImg, hG.inputImgSz);
 mappedImg = imrotate(mappedImg, 180);
 
@@ -136,7 +175,7 @@ mappedImg = imrotate(mappedImg, 180);
 
 % Compute total msk change ratio
 mskRatio  = repmat(1 ./ mappedImg,[1 1 3]);
-mskRatio  = mskRatio.^1.5;
+mskRatio  = mskRatio^(1/gamma);
 
 % Blur camera image
 %gFilter   = fspecial('gaussian',[10 10],5); % Gaussian filter
@@ -145,34 +184,16 @@ mskRatio  = mskRatio.^1.5;
 mskRatio  = mskRatio ./ max(mskRatio(:));
 mskRatio(isnan(mskRatio)) = 1;
 
-% Cut msk to slices
-mskRatioPix = cutImgToPix(mskRatio,hG);
-
-% Apply to hG dispImg
-for curPix = 1:length(hG.pixelets)
+%% Restore and apply to hG
+for curPix = 1 : numel(hG.pixelets)
     pix = pixelets{curPix};
-    % Change display size should not change the mask size...
-    % Should fix it elsewhere
-    % but for convenience, I just resize new mask here...
-    hG.pixelets{curPix}.msk = hG.pixelets{curPix}.msk.*...
-        imresize(mskRatioPix{curPix}, hG.pixelets{curPix}.dispSize);
-    % Restore to original settings
-    hG.pixelets{curPix}.imgContent = pix.imgContent;
-    hG.pixelets{curPix}.dispImg  = imresize(pix.imgContent, ...
-        pixelets{curPix}.dispSize).* hG.pixelets{curPix}.msk;
+    UlPos = pixeletGet(pix, 'in ul pos');
+    LrPos = pixeletGet(pix, 'in lr pos');
+    mskRatioPix = mskRatio(UlPos(1):LrPos(1), UlPos(2):LrPos(2), :);
+    %  Restore image content and save adjusted mask
+    curMsk = pixeletGet(pix, 'msk');
+    hG.pixelets{curPix} = pixeletSet(pix, 'msk', curMsk .* mskRatioPix);
 end
 
-%  Draw to screen
-hG.dispI = zeros(size(hG.dispI));
-for curPix = 1 : length(hG.pixelets)
-    hG.dispI = drawPixelet(hG.dispI, hG.pixelets{curPix});
-end
-
-imshow(hG.dispI);
-
-
-
-%% Restore to original image
-hG.pixelets = pixelets;
 
 end
