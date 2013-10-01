@@ -10,15 +10,29 @@ function paOnCloseRequest(~, ~)
 %
 %  (HJ) Aug, 2013
 
+%% Check if need to save settings
+choice = questdlg('Save settings?','Save settings?', 'Yes', 'No', 'Yes');
+if strcmp(choice, 'No'), delete(gcf); return; end
+
 %% Get pixelet adjuster handler
 hG = paGetHandler();
 if isempty(hG), delete(gcf); return; end
 if ~hG.saveWindowPos, delete(gcf); return; end
+if ~isfield(hG, 'useDefaultSettingsName')
+    hG.useDefaultSettingsName = false;
+end
 
 
 %% Save window position
+if hG.useDefaltSettingsName
+    paSettingFileName = fullfile(paRootPath,'Data','pixeletSettings.mat');
+else
+    [fName, pName] = uiputfile;
+    paSettingFileName = fullfile(pName, fName);
+end
+
 Pos = get(gcf,'Position');
-paSettingFileName = fullfile(paRootPath, 'Data', 'pixeletSettings.mat');
+
 if exist(paSettingFileName, 'file')
     c   = load(paSettingFileName);
     if isfield(c, 'hG')

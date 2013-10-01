@@ -12,15 +12,28 @@ function paMenuSaveSettings(~, ~)
 %% Get pixelet adjuster graph handle
 hG = paGetHandler();
 if isempty(hG), error('pixelet adjuster window not found'); end
-
-hG = getappdata(hG.fig,'handles');
+if ~isfield(hG, 'saveWindowPos'), hG.saveWindowPos = true; end
+if ~isfield(hG, 'useDefaultSettingsName')
+    hG.useDefaultSettingsName = false;
+end
 
 %% Save current settings and window positions
-Pos =  get(gcf,'Position');
-settignsFileName = fullfile(paRootPath, 'Data', 'pixeletSettings.mat');
+if hG.useDefaltSettingsName
+    settignsFileName = fullfile(paRootPath, 'Data', 'pixeletSettings.mat');
+else
+    [fName, pName] = uiputfile;
+    settingsFileName = fullfile(pName, fName);
+end
 
-save(settignsFileName, 'hG', 'Pos');
+if hG.saveWindowPos
+    Pos =  get(gcf,'Position');
+    save(settignsFileName, 'hG', 'Pos');
+else
+    save(settingsFileName, 'hG');
+end
 
 msgbox('Settings Saved');
+
+%% Save hG
 
 end

@@ -168,6 +168,7 @@ mh = uimenu(hG.fig, 'Label', 'Adjustment');
 uimenu(mh, 'Label', 'Adj Overlap','Callback', @paAdjOverlap);
 uimenu(mh, 'Label', 'Adj Total Size', 'Callback', @paAdjTotalSize);
 uimenu(mh, 'Label', 'Adj Gap Size', 'Callback', @paAdjGapSize);
+uimenu(mh, 'Label', 'Adj Pixelets Size', 'Callback', @paAdjPixSize);
 
 % Draw Panels
 hG.main = uipanel(... % Main panel
