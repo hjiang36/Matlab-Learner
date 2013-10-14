@@ -45,7 +45,7 @@ for curPixIndx = 1 :length(seq)
 end
 
 if isVisible
-    imshow(hG.dispI);
+    imshow(hG.dispI); truesize(gcf);
     drawnow();
 end
 

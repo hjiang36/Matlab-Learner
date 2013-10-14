@@ -22,8 +22,24 @@ AssertOpenGL;
 %% Get position and display image
 %  Get window position in window coodinates
 %  Note here, the lower left corner is (0, 0)
-set(hG.fig, 'Unit', 'Pixel');
+set(hG.fig, 'Units', 'Pixel');
 winRect = get(hG.fig, 'Position');
+set(hG.fig, 'Units', 'Normalized');
+
+%  Get pannel position
+set(hG.main, 'Units', 'Pixel');
+panelPos = get(hG.main, 'Position');
+set(hG.main, 'Units', 'Normalized');
+
+%  Get axes position
+set(gca, 'Units', 'Pixel');
+axesPos = get(gca, 'Position');
+set(gca, 'Units', 'Normalized');
+
+%  Compute axes region
+winRect(1:2) = winRect(1:2) + axesPos(1:2) + panelPos(1:2) - 1;
+dispImgSz = size(hG.dispI);
+winRect(3:4) = [dispImgSz(2) dispImgSz(1)];
 
 %  Get Screen Resolution
 winNumber  = max(Screen('Screens'));
