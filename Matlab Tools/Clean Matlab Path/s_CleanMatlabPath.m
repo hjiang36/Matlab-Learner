@@ -5,7 +5,11 @@
 
 %% Load and Parse Matlab Path
 curPath = matlabpath;
-curPath = strsplit(curPath,':');
+if isunix
+    curPath = strsplit(curPath, ':');
+else
+    curPath = strsplit(curPath, ';');
+end
 
 %% Taversal through path name
 matchStr = {'.svn','.git'};
