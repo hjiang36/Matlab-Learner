@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <title>Test Json</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- jQuery + jQuery template support -->
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        
+        <!-- Bootstrap -->
+        <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link type="text/css" href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet" />
+        <script type="text/javascript" src="lib/bootstrap/js/bootstrap.js"></script>
+
+        <!-- Alpaca -->
+        <script type="text/javascript" src="http://www.alpacajs.org/js/alpaca.min.js"></script>
+		<link type="text/css" href="http://www.alpacajs.org/css/alpaca.min.css" rel="stylesheet"/>
+        
+        <!-- Alpaca support for Bootstrap -->
+        <link type="text/css" href="lib/alpaca/alpaca-bootstrap.css" rel="stylesheet" />
+
+        <!-- Custom Files -->
+        <script type="text/javascript">
+		$(function(){
+		$("#form").alpaca({
+        	"data": {
+				"species":"human",
+				"macular":{
+					"density":0.28,
+					"name":"default macular",
+					"type":"macular"
+					},
+				"spatialDensity":[0,0.6,0.3,0.1],
+				"name":"default human cone",
+				"peakEfficiency":[0.3,0.3,0.3],
+				"type":"cone",
+				"opticalDensity":[[0.5],[0.5],[0.4]]
+				},
+			"schema": {
+				"title": "Test Json",
+				"description" : "Test Matlab generated json file rendering",
+				"properties" : {
+					"species" : {
+						"type"  : "string",
+						"title" : "Species",
+						"description" : "Species of this cone", 
+						"readonly" : true
+					}
+				}
+			}
+    	});})
+        </script>
+
+	</head>
+	<body>
+     	<div id="form" class="tutorial-example"></div>
+	</body>
+</html>
