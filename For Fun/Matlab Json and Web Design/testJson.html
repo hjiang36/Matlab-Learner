@@ -36,17 +36,37 @@
 				"name":"default human cone",
 				"peakEfficiency":[0.3,0.3,0.3],
 				"type":"cone",
-				"opticalDensity":[[0.5],[0.5],[0.4]]
+				"opticalDensity":[0.5, 0.5, 0.4]
 				},
+			"options" : {
+				"spatialDensity" : {
+					"toolbarSticky" : true,
+					"itemLabel" : "Cone"
+				}
+			},
 			"schema": {
-				"title": "Test Json",
-				"description" : "Test Matlab generated json file rendering",
+				"title": "default human cone",
+				"description" : "human cone parameters",
 				"properties" : {
 					"species" : {
 						"type"  : "string",
 						"title" : "Species",
 						"description" : "Species of this cone", 
 						"readonly" : true
+					},
+					"name" : {
+						"type" : "string",
+						"title": "Name",
+						"description": "name of this cone"
+					},
+					"spatialDensity":{
+						"title" : "Cone Spatial Density",
+						"items": {
+                			"type": "number"
+						}				
+					},
+					"opticalDensity":{
+						"title" : "Optical Density"
 					}
 				}
 			}
