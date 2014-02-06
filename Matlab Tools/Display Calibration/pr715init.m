@@ -25,24 +25,20 @@
 
 % See pr715set for setting pr715 parameters. 
 
-function [port] = pr715init(id)
+function port = pr715init(portName)
 
-if nargin < 1, id = 1; end
+% Check input
+if notDefined('portName'), error('Connection Port Name Required'); end
 
-% Determine if the COM port is already open.
-if isunix()
-    % For mac simple driver only - need to be changed to auto detection
-    comstr = '/dev/tty.PL2303-00001014';
-elseif ispc % Use COM port for Windows
-    comstr  = ['COM' num2str(id)];
-end
-port    = serial(comstr);
+% Connect
+port = serial(portName);
 
 % Open and initialize the serial port.
 if (strcmpi(port.Status,'closed') == 1)
    fopen( port );
 end
 
+% Set port parameters
 set(port,'BaudRate',9600);
 set(port,'DataBits',8);
 set(port,'Parity','none');
@@ -59,12 +55,4 @@ pause(0.5);
 
 % Send a quick command to keep it in command mode.
 % fprintf(port,'S,,,,,0,1,0\n');
-
-% Initial handshaking
-fprintf(port,'PR715 \n');
-% Blink the backlight for visual indication
-fprintf(port,'B3 \n'); pause(0.75); 
-fprintf(port,'B0 \n'); pause(0.75);
-fprintf(port,'B1 \n');
-
 
