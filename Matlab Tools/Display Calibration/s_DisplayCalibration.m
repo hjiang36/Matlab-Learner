@@ -136,5 +136,7 @@ sendMailAsHJ({'hjiang36@gmail.com'},emailSubject,[],{[d.name '.mat']});
 
 %% Clean up & save results
 fclose(port);
+delete(port);
+clear port;
 Screen('CloseAll');
 
