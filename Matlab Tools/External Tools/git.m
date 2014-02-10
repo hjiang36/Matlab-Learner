@@ -55,7 +55,7 @@ function result = git(varargin)
 % Contributors: (MR) Manu Raghavan
 %               (TH) Timothy Hansell
 %               (TN) Tassos Natsakis
-
+% (HJ) update output when there's no output arguments
 
 % Test to see if git is installed
 [status,~] = system('git --version');
@@ -91,6 +91,10 @@ function result = git(varargin)
           prog = ' | cat';
         end
         [~,result] = system(['git ',arguments,prog]);
+    end
+    
+    if nargout < 1
+        disp(result);
     end
 end
 
