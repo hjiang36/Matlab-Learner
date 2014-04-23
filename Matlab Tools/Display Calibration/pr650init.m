@@ -11,14 +11,7 @@ function port = pr650init(id)
 if nargin<1, id = 1; end
 
 %% Check OS
-if isunix()
-    % For mac simple driver only - need to be changed to auto detection
-    comstr = '/dev/tty.PL2303-00001014';
-elseif ispc % Use COM port for Windows
-    comstr  = ['COM' num2str(id)];
-end
-
-port = serial(comstr);
+port = serial(id);
 
 %% Open and initialize the serial port.
 if (strcmpi(port.Status,'closed') == 1)

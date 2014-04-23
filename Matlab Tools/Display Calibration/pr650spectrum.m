@@ -3,7 +3,7 @@ function spd = pr650spectrum(port)
 bytes = port.BytesAvailable;
 while (bytes ~= 0)
    flushinput(port);
-   %pause(0.1);
+   pause(0.1);
    bytes = get(port,'BytesAvailable');
 end
 %timeout = get(port,'Timeout');
@@ -21,8 +21,8 @@ while bytes == 0
     bytes = port.BytesAvailable;
 end
 
-tmp = fgetl(port); % Ignore the first line 00,0
-tmp = fgetl(port); 
+fgetl(port); % Ignore the first line 00,0
+fgetl(port); 
 for i = 1:length(wave)
     str = fgetl(port);
     tmp = strsplit(str,',');
