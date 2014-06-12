@@ -32,7 +32,7 @@ Screen('LoadNormalizedGammaTable', screenNumber, gammaTable);
 % Set Resolution first, then try frame rate
 try
     Screen('Resolution', screenNumber, resolution(1), resolution(2));
-    Screen('Resolution',screenNumber,resolution(1),resolution(2),frameRate);
+q    Screen('Resolution',screenNumber,resolution(1),resolution(2),frameRate);
 catch ME
     warning(ME.identifier, ME.message);
 end     
@@ -132,7 +132,18 @@ while true
             I(1:3:end,:,1) = 255;
             I(2:3:end,:,2) = 255;
             I(3:3:end,:,3) = 255;
-            
+        case '7&'
+            I = 255*ones(1800,2880);
+            I(:,1440) = 0;
+        case '8*'
+            I = zeros(1800, 2880);
+            I(:, 1430:1439) = 255;
+            I(:, 1441:1450) = 255;
+        case '9('
+            I = 127.5*ones(1800, 2880);
+            I(:, 1186:2:1694) = repmat(127 + [1:128 127:-1:1], [1800 1]);
+            I(:, 1187:2:1695) = repmat(128 - [1:128 127:-1:1], [1800 1]);
+            I = (I/255) .^(1/2.2)*255;
         case 'q'
             break;
         otherwise
