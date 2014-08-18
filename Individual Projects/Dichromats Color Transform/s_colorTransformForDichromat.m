@@ -56,6 +56,7 @@ pp = spline(wave, spdDiff);
 f  = @(x) ppval(pp, x);
 anPro(1) = fzero(f, [400 520]);
 anPro(2) = fzero(f, [520 700]);
+fprintf('anchor for protan:%.2f, %.2f\n', anPro(1), anPro(2));
 
 % Compute M anchor
 spdDiff = spd(:,2) - spd(:, [1 3]) * transM';
@@ -63,6 +64,7 @@ pp = spline(wave, spdDiff);
 f  = @(x) ppval(pp, x);
 anDeu(1) = fzero(f, [400 520]);
 anDeu(2) = fzero(f, [520 700]);
+fprintf('anchor for deutan:%.2f, %.2f\n', anDeu(1), anDeu(2));
 
 % Compute S anchor
 spdDiff = spd(:,3) - spd(:, [1 2]) * transS';
@@ -70,3 +72,4 @@ pp = spline(wave, spdDiff);
 f  = @(x) ppval(pp, x);
 anTri(1) = fzero(f, [400 520]);
 anTri(2) = fzero(f, [520 700]);
+fprintf('anchor for tritan:%.2f, %.2f\n', anTri(1), anTri(2));
