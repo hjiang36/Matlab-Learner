@@ -9,7 +9,7 @@ end
 %timeout = get(port,'Timeout');
 set(port,'Timeout',60);
 fprintf(port,'PR650\n');
-fprintf(port,'M5 \n');
+fprintf(port,'M\n');
 WaitSecs(1);
 
 wave = 380:4:780;

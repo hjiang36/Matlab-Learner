@@ -36,6 +36,9 @@ Gamma = @(A) (Z2 + A'*A - Z2*A'/(A*A')*A*Z2)\A';
 
 % For proteranopia: MS -> L
 A = spd(:,2:3)';
+% M = inv([Z2 A'; A zeros(size(A, 1))]);
+% GammaA = M(1:31, 32:33);
+% transL = spd(:,1)' * GammaA;
 transL = spd(:,1)' * Gamma(A);
 
 % For deuteranopia: LS -> M
@@ -73,3 +76,5 @@ f  = @(x) ppval(pp, x);
 anTri(1) = fzero(f, [400 520]);
 anTri(2) = fzero(f, [520 700]);
 fprintf('anchor for tritan:%.2f, %.2f\n', anTri(1), anTri(2));
+
+%% Add non-negative contraints
