@@ -11,7 +11,7 @@
 
 %% Init
 ieInit;   % initialize a new isetbio session
-N = 128; % number of sample poitns
+N = 256; % number of sample poitns
 
 %% Compute for Protanopia
 %  Protanopia does not have L cones and we just need to make up M and S

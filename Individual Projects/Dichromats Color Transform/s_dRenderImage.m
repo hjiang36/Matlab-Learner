@@ -8,8 +8,13 @@ ieInit;
 load dColorTransformPre.mat
 
 %% Load image
+d = displayCreate('LCD-Apple');
 I = im2double(imread('hats.jpg'));
-LMS = xyz2lms(srgb2xyz(I));
+
+rgb2xyz = displayGet(d, 'rgb2xyz');
+img_xyz = imageLinearTransform(I, rgb2xyz);
+
+LMS = xyz2lms(img_xyz);
 vcNewGraphWin;
 subplot(2, 2, 1); imshow(I); title('original');
 

@@ -61,14 +61,14 @@ LMS = dLMS; % init LMS
 fprintf('Computing for row 0000');
 for ii = 1 : size(dLMS, 1)
     fprintf('\b\b\b\b%04d', ii);
-    A = spd'; A(cbType, :) = [];
+    A = spd'; h = A(cbType,:); A(cbType, :) = [];
     c = dLMS(ii, :)'; c(cbType) = [];
     cvx_begin quiet
         variable w(n)
         minimize(norm(Z*w, 2))
         subject to
             A * w == c
-            w >= 0
+            h * w >= 0
             % spd(:, cbType)' * w >= 0
     cvx_end
     LMS(ii, cbType) = spd(:, cbType)' * w;
