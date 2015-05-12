@@ -1,22 +1,36 @@
-%% startup.m
+%% choosePath.m
+%
 %  This is the startup function for MATLAB
 %  In this script, the user will be asked to choose which project will be
 %  worked on and automatically add corresponding folders
-%  This script can be used on HJ's Macbook Pro only
+%  This script can be used on HJ's Macbook Pro / Windows Desktop only
 %
-%  (HJ) Oct, 2013
+%  This script could be renamed to startup.m and put to MATLAB folder to
+%  get automatically executed on startup of MATLAB
+%
+%  (HJ) May, 2015
 
 %% Clean up
 clear; clc; close all;
 
 %% Generate toolbox name and path structure
-folderNames = {'ISET', 'ISETBio','Frontend','Color Vision Experiment', ...
-               'ctToolbox', 'HJ Matlab-Learner', 'L3', ...
-               'PDC Soft', 'Vista Disp'};
-folderPath  = {'~/iset', '~/isetbio', {'~/isetbio', '~/frontend'}, ...
-               '~/colorVisionExperiment', '~/ctToolbox', ...
-               '~/Matlab-Learner', {'~/iset', '~/fbCamera', '~/L3'}...
-               '~/PDCSoft', '~/VistaDisp'};
+if ispc
+    % Windows system
+    basePath = 'C:\Users\Haomiao\Documents\GitHub';
+    folderNames = {'ISET', 'ISETBio', 'Frontend', ...
+        'Color Vision Experiment', 'HJ Matlab-Learner', 'L3'};
+    folderPath  = {'iset', 'isetbio', {'isetbio', 'frontend'}, ...
+        'colorVisionExperiment', 'Matlab-Learner', ...
+        {'iset', 'fbCamera', 'L3'}};
+else
+    % Mac or Linux system
+    basePath = '~/';
+    folderNames = {'ISET', 'ISETBio', 'Frontend', ...
+        'Color Vision Experiment', 'HJ Matlab-Learner', 'L3'};
+    folderPath  = {'iset', 'isetbio', {'isetbio', 'frontend'}, ...
+        'colorVisionExperiment', 'Matlab-Learner', ...
+        {'iset', 'fbCamera', 'L3'}};
+end
 
 %% Get project number
 s = sprintf('Welcome to MATLAB\n');
@@ -36,7 +50,7 @@ path(pathdef);
 answer = str2double(strsplit(answer, ' '));
 if any(answer == 0)
     clear; clc;
-    return;
+    return
 end
 
 try
@@ -47,13 +61,14 @@ try
         end
         for jj = 1 : length(fName)
             % swich folder
-            cd(fName{jj});
+            cd(fullfile(basePath, fName{jj}));
+            
             % check git status
-            if answer(ii) < 8
-                cprintf('*Keywords', '%s:\n', fName{jj});
-                git status;
-            end
-            addpath(genpath(fName{jj}));
+            cprintf('*Keywords', '%s:\n', fName{jj});
+            git status;
+            
+            % add to path
+            addpath(genpath(fullfile(basePath, fName{jj})));
         end
     end
 catch
