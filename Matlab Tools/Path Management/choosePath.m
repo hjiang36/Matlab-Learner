@@ -29,7 +29,7 @@ else
         'Color Vision Experiment', 'HJ Matlab-Learner', 'L3'};
     folderPath  = {'iset', 'isetbio', {'isetbio', 'frontend'}, ...
         'colorVisionExperiment', 'Matlab-Learner', ...
-        {'iset', 'fbCamera', 'L3'}};
+        {'iset', 'L3'}};
 end
 
 %% Get project number
