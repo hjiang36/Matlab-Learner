@@ -11,8 +11,13 @@ ieInit;
 %% load cone sensitiviy
 wave = 400:700;
 img  = im2double(imread('hats.jpg'));
-d = displayCreate('LCD-Apple');
-scene = sceneFromFile(img, 'rgb', [], d, wave);
+d = displayCreate('OculusDK2');
+d.dpi = 100;
+d = displaySet(d, 'wave', wave);
+
+% scene = sceneFromFile(img, 'rgb', [], d, wave);
+scene = sceneCreate;
+scene = sceneSet(scene, 'wave', wave);
 p = sceneGet(scene, 'photons');
 [p, r, c] = RGB2XWFormat(p);
 
@@ -28,56 +33,85 @@ end
 % Get rid of last line
 Z = Z(1:end-1,:);
 
-%% Compute transformation
+%% Initializing parameters
 % Compute transformation matrix (Gamma)
 Z2 = Z'*Z;
 Gamma = @(A) (Z2 + A'*A - Z2*A'/(A*A')*A*Z2)\A';
 
 % simulate color anomalous image (deutan-anomalous)
-hfig = vcNewGraphWin([], 'wide');
-peakShift = 0:29;
+peakShift = [5 10 15 20 25.5 25.7 25.8 25.9];
+% peakShift = 0:26;
 transM = eye(3);
-% sensor = sensorCreate('human');
-% sensor = sensorSet(sensor, 'wave', wave);
 
-videoObj = VideoWriter('colorAnomalous.avi');
+%
+sensor = sensorCreate('human');
+sensor = sensorSet(sensor, 'wave', wave);
+cone = sensorGet(sensor, 'human cone');
+absorbance = coneGet(cone, 'absorbance');
+shiftWave = 1./(1 ./ wave + 1/530 - 1/556);
+absorbance(:, 2) = interp1(shiftWave, absorbance(:, 1), wave, 'spline');
+spd = sensorGet(sensor, 'spectral qe'); % shall we use energy efficiency?
+spd = spd(:, 2:4);
+spd = bsxfun(@rdivide, spd, max(spd));
+
+%% Compute transforms
+videoObj = VideoWriter('colorAnomalous_tmp.avi');
 videoObj.FrameRate = 5;
 open(videoObj);
 
-% normalM = sensorGet(sensor, 'spectral qe');
-% normalM = normalM(:, 3);
-% normalM = normalM / max(normalM);
-spd = ieReadSpectra('stockman', wave);
-normalM = spd(:,2);
-
-for ii = 1:length(peakShift);
-    % cone = coneCreate('human', 'wave', wave);
-    % coneSpd = coneGet(cone, 'absorptance');
-    
-    % coneSpd(:, 2) = circshift(coneSpd(:, 2), peakShift(ii), 1);
-    % coneAbsorbance = -log10(1 - coneSpd) * diag(1./coneGet(cone, 'pods'));
-    % cone = coneSet(cone, 'absorbance', coneAbsorbance);
-    % sensor = sensorSet(sensor, 'human cone', cone);
-    
-    % spd = sensorGet(sensor, 'spectral qe');
-    % spd = spd(:, 2:4); % get rid of K and only use L,M,S
-    % spd = bsxfun(@rdivide, spd, max(spd));
-    waveNumber = 1 ./ wave - 1/540 + 1/(540 + peakShift(ii));
+hfig = vcNewGraphWin([], 'wide');
+lms_tm = zeros(3, 3, length(peakShift));
+for ii = 1 : length(peakShift)
+    waveNumber = 1 ./ wave - 1/556 + 1/(556 - peakShift(ii));
     shiftWave = 1 ./ waveNumber;
-    spdShift = spd;
-    spdShift(:, 2) = interp1(shiftWave, spd(:,2), wave, 'linear', 0);
-
+    absShift = absorbance;
+    absShift(:, 1) = interp1(shiftWave, absorbance(:, 1), wave, 'spline');
+    absShift(absShift < 0) = 0;
+    spdShift = sensorGet(sensorSet(sensor, 'human cone', ...
+        coneSet(cone, 'absorbance', absShift)), 'spectral qe');
+    spdShift = spdShift(:, 2:4);
+    [~, indx] = max(spdShift);
+    indx
+    spdShift = bsxfun(@rdivide, spdShift, max(spdShift));
     
     img_lms = reshape(p * spdShift, [r,c,3]);
-    transM(2, :) = normalM' * Gamma(spdShift');
+    transM(1, :) = spd(:, 1)' * Gamma(spdShift');
     
     img_lms_T = imageLinearTransform(img_lms, transM');
+    rgb2lms = displayGet(d, 'spd')' * spdShift;
+    rgb2lms_normal = displayGet(d, 'spd')' * spd;
+    
+    rgb2rgb = rgb2lms*transM'/rgb2lms_normal;
+    rgb2rgb = bsxfun(@rdivide, rgb2rgb, sum(rgb2rgb));
+    lms_tm(:, :, ii) = rgb2rgb;
+    
+    % subplot(1, 2, 1); plot(wave, spdShift);
+    % xlabel('wavelength (nm)'); ylabel('Sensitivity');
+    % subplot(1, 2, 2); imshow(img_srgb_T);
     img_srgb_T = lms2srgb(img_lms_T);
-    
-    subplot(1, 2, 1); plot(wave, spdShift);
-    xlabel('wavelength (nm)'); ylabel('Sensitivity');
-    subplot(1, 2, 2); imshow(img_srgb_T);
-    
+    imshow(imresize(img_srgb_T, 10));
     drawnow; writeVideo(videoObj, getframe(hfig));
 end
 close(videoObj);
+
+%% Simulation using Machado method
+vcNewGraphWin;
+peak_wave = zeros(length(peakShift), 1);
+rgb_tm = zeros(3, 3, length(peakShift));
+for ii = 1 : length(peakShift)
+    waveNumber = 1 ./ wave - 1/556 + 1/(556 - peakShift(ii));
+    shiftWave = 1 ./ waveNumber;
+    absShift = absorbance;
+    absShift(:, 1) = interp1(shiftWave, absorbance(:,1), wave, 'spline');
+    s = sensorSet(sensor, 'human cone', coneSet(cone, 'absorbance', absShift));
+    
+    % compute peak of current L
+    qe = sensorGet(s, 'spectral qe'); qe = qe(:, 2:4);
+    [~, pos] = max(qe); peak_wave(ii) = wave(pos(1));
+    
+    [img_srgb_T, t] = colorAnomalous(img, d, s, [1 1.1823 1]);
+    imshow(img_srgb_T); drawnow;
+    rgb_tm(:,:,ii) = t';
+end
+
+save transform.mat peak_wave rgb_tm

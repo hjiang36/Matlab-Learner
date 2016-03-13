@@ -45,6 +45,7 @@ if numel(dLMS) == 3, dLMS = dLMS(:)'; end
 wave  = 400:10:700; wave = wave(:);
 spd   = ieReadSpectra('stockman', wave);
 % white = blackbody(wave, temperature, 'energy');
+% wp = displayGet(displayCreate('~/Downloads/OculusDK2_PR650.mat'), 'white spd', wave);
 
 % create differentiate matrix
 n = length(wave);
@@ -65,6 +66,7 @@ for ii = 1 : size(dLMS, 1)
     c = dLMS(ii, :)'; c(cbType) = [];
     cvx_begin quiet
         variable w(n)
+        % minimize(norm(Z*(w./wp), 2))
         minimize(norm(Z*w, 2))
         subject to
             A * w == c
